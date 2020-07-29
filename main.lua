@@ -2,6 +2,8 @@ Object = require 'libraries/classic/classic'
 Input = require 'libraries/boipushy/Input'
 Timer = require 'libraries/enhanced_timer/EnhancedTimer'
 
+require 'utils'
+
 function love.load()
   local object_files = {}
   recursiveEnumerate('objects', object_files)

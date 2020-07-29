@@ -13,11 +13,19 @@ end
 function Projectile:update(dt)
   Projectile.super.update(self, dt)
   self.collider:setLinearVelocity(self.v * math.cos(self.r), self.v * math.sin(self.r))
+
+  if self.x < 0 or self.y < 0 or self.x > gw or self.y > gh then self:die() end
 end
 
 function Projectile:draw()
   love.graphics.setColor(default_color)
   love.graphics.circle('line', self.x, self.y, self.s)
+end
+
+function Projectile:die()
+  self.dead = true
+  self.area:addGameObject('ProjectileDeathEffect', self.x, self.y,
+  {color = hp_color, w = 3 * self.s})
 end
 
 function Projectile:destroy()

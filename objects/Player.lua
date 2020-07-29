@@ -14,7 +14,7 @@ function Player:new(area, x, y, opts)
   self.max_v = self.base_max_v  -- current max velocity
   self.a = 100                  -- player acceleration
   self.trail_color = skill_point_color
-  self.ship = 'Fighter'
+  self.ship = 'Rogue'
   self.polygons = {}
 
   self.timer:every(0.24, function() self:shoot() end)
@@ -28,6 +28,11 @@ function Player:new(area, x, y, opts)
       self.area:addGameObject('TrailParticle',
       self.x - 0.9 * self.w * math.cos(self.r) + 0.2 * self.w * math.cos(self.r + math.pi / 2), 
       self.y - 0.9 * self.w * math.sin(self.r) + 0.2 * self.w * math.sin(self.r + math.pi / 2), 
+      {parent = self, r = random(2, 4), d = random(0.15, 0.25), color = self.trail_color})
+    elseif self.ship == 'Rogue' then
+      self.area:addGameObject('TrailParticle',
+      self.x - self.w * math.cos(self.r),
+      self.y - self.w * math.sin(self.r),
       {parent = self, r = random(2, 4), d = random(0.15, 0.25), color = self.trail_color})
     end
   end)
@@ -54,6 +59,15 @@ function Player:new(area, x, y, opts)
       -self.w * 1.5, self.h,
       -self.w * 0.75, self.h / 4,
       -self.w / 2, self.h / 2
+    }
+  elseif self.ship == 'Rogue' then
+    self.polygons[1] = {
+      self.w, 0,
+      self.w / 4, -self.h * 0.75,
+      -self.w * 1.25, -self.h / 4,
+      -self.w, 0,
+      -self.w * 1.25, self.h / 4,
+      self.w / 4, self.h * 0.75
     }
   end
 end

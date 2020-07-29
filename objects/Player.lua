@@ -28,8 +28,6 @@ end
 
 function Player:draw()
   love.graphics.circle('line', self.x, self.y, self.w)
-  love.graphics.line(self.x, self.y, self.x + 2 * self.w * math.cos(self.r),
-    self.y + 2 * self.w * math.sin(self.r))
 end
 
 function Player:shoot()
@@ -38,6 +36,9 @@ function Player:shoot()
   self.area:addGameObject('ShootEffect', self.x + d * math.cos(self.r),
     self.y + d * math.sin(self.r),
     {player = self, d = d})
+
+  self.area:addGameObject('Projectile', self.x + 1.5 * d * math.cos(self.r),
+    self.y + 1.5 * d * math.sin(self.r), {r = self.r})
 end
 
 function Player:destroy()

@@ -7,36 +7,31 @@ function love.load()
   recursiveEnumerate('objects', object_files)
   requireFiles(object_files)
 
-  timer = Timer()
-  rect_1 = {x = 400, y = 300, w = 50, h = 200}
-  rect_2 = {x = 400, y = 300, w = 200, h = 50}
-  timer:every(3, function()
-    timer:tween(1, rect_1, {w = 0}, 'in-out-cubic', function()
-      timer:tween(1, rect_2, {h = 0}, 'in-out-cubic', function()
-        timer:tween(1, rect_1, {w = 50}, 'in-out-cubic')
-        timer:tween(1, rect_2, {h = 50}, 'in-out-cubic')
-      end)
-    end)
-  end)
+  local room_files = {}
+  recursiveEnumerate('rooms', room_files)
+  requireFiles(room_files)
 
   input = Input()
-  input:bind('mouse1', 'test')
+  input:bind('c', function() gotoRoom('CircleRoom') end)
+  input:bind('r', function() gotoRoom('RectRoom') end)
+
+  timer = Timer()
+
+  current_room = nil
+
 end
 
 function love.update(dt)
   timer:update(dt)
-
-  if input:pressed('test') then print('pressed') end
-  if input:released('test') then print('released') end
+  if current_room then current_room:update(dt) end
 end
 
 function love.draw()
-  love.graphics.rectangle(
-    'fill', rect_1.x - rect_1.w/2, rect_1.y - rect_1.h/2, rect_1.w, rect_1.h
-  )
-  love.graphics.rectangle(
-    'fill', rect_2.x - rect_2.w/2, rect_2.y - rect_2.h/2, rect_2.w, rect_2.h
-  )
+  if current_room then current_room:draw() end
+end
+
+function gotoRoom(room_type, ...)
+  current_room = _G[room_type](...)
 end
 
 function recursiveEnumerate(folder, file_list)

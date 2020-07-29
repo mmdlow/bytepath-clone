@@ -1,6 +1,7 @@
 Object = require 'libraries/classic/classic'
 Input = require 'libraries/boipushy/Input'
 Timer = require 'libraries/enhanced_timer/EnhancedTimer'
+Camera = require 'libraries/hump/camera'
 
 require 'utils'
 
@@ -16,11 +17,11 @@ function love.load()
   recursiveEnumerate('rooms', room_files)
   requireFiles(room_files)
 
-  input = Input()
-  input:bind('c', function() gotoRoom('CircleRoom') end)
-  input:bind('r', function() gotoRoom('RectRoom') end)
-
+  camera = Camera()
   timer = Timer()
+  input = Input()
+  
+  input:bind('f3', function() camera:shake(4, 60, 1) end)
 
   current_room = nil
   gotoRoom('Stage')
@@ -30,6 +31,7 @@ function love.load()
 end
 
 function love.update(dt)
+  camera:update(dt)
   timer:update(dt)
   if current_room then current_room:update(dt) end
 end

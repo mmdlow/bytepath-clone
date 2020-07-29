@@ -14,6 +14,7 @@ function Player:new(area, x, y, opts)
   self.a = 100              -- player acceleration
 
   self.timer:every(0.24, function() self:shoot() end)
+  self.timer:every(5, function() self:tick() end)
 end
 
 function Player:update(dt)
@@ -43,6 +44,10 @@ function Player:shoot()
 
   self.area:addGameObject('Projectile', self.x + 1.5 * d * math.cos(self.r),
     self.y + 1.5 * d * math.sin(self.r), {r = self.r})
+end
+
+function Player:tick()
+  self.area:addGameObject('TickEffect', self.x, self.y, {parent = self})
 end
 
 function Player:die()

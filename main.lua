@@ -5,6 +5,9 @@ Timer = require 'libraries/enhanced_timer/EnhancedTimer'
 require 'utils'
 
 function love.load()
+  love.graphics.setDefaultFilter('nearest', 'nearest')
+  love.graphics.setLineStyle('rough')
+
   local object_files = {}
   recursiveEnumerate('objects', object_files)
   requireFiles(object_files)
@@ -20,6 +23,9 @@ function love.load()
   timer = Timer()
 
   current_room = nil
+  gotoRoom('Stage')
+
+  resize(3)
 
 end
 
@@ -30,6 +36,13 @@ end
 
 function love.draw()
   if current_room then current_room:draw() end
+end
+
+---
+
+function resize(s)
+  love.window.setMode(s*gw, s*gh)
+  sx, sy = s, s
 end
 
 function gotoRoom(room_type, ...)

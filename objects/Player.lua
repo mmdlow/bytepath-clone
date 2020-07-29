@@ -7,11 +7,13 @@ function Player:new(area, x, y, opts)
   self.collider = self.area.world:newCircleCollider(self.x, self.y, self.w)
   self.collider:setObject(self)
 
-  self.r = -math.pi / 2
-  self.rv = 1.66 * math.pi
-  self.v = 0
-  self.max_v = 100
-  self.a = 100
+  self.r = -math.pi / 2     -- angle player is moving toward (initially, up)
+  self.rv = 1.66 * math.pi  -- velocity of angle change
+  self.v = 0                -- player velocity
+  self.max_v = 100          -- max velocity possible
+  self.a = 100              -- player acceleration
+
+  self.timer:every(0.24, function() self:shoot() end)
 end
 
 function Player:update(dt)
@@ -28,6 +30,14 @@ function Player:draw()
   love.graphics.circle('line', self.x, self.y, self.w)
   love.graphics.line(self.x, self.y, self.x + 2 * self.w * math.cos(self.r),
     self.y + 2 * self.w * math.sin(self.r))
+end
+
+function Player:shoot()
+  local d = 1.2 * self.w
+
+  self.area:addGameObject('ShootEffect', self.x + d * math.cos(self.r),
+    self.y + d * math.sin(self.r),
+    {player = self, d = d})
 end
 
 function Player:destroy()

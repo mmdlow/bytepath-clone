@@ -7,6 +7,7 @@ fn = require 'libraries/Moses/moses'
 
 require 'GameObject'
 require 'utils'
+require 'globals'
 
 function love.load()
   love.graphics.setDefaultFilter('nearest', 'nearest')

@@ -2,7 +2,10 @@ Object = require 'libraries/classic/classic'
 Input = require 'libraries/boipushy/Input'
 Timer = require 'libraries/enhanced_timer/EnhancedTimer'
 Camera = require 'libraries/hump/camera'
+Physics = require 'libraries/windfield'
+fn = require 'libraries/Moses/moses'
 
+require 'GameObject'
 require 'utils'
 
 function love.load()
@@ -22,6 +25,8 @@ function love.load()
   input = Input()
   
   input:bind('f3', function() camera:shake(4, 60, 1) end)
+  input:bind('left', 'left')
+  input:bind('right', 'right')
 
   current_room = nil
   gotoRoom('Stage')

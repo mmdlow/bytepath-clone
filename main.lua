@@ -25,6 +25,9 @@ function love.load()
   timer = Timer()
   input = Input()
 
+  slow_amount = 1
+  flash_frames = nil
+
   -- Garbage collection
   input:bind('f1', function()
     print('Before collection: ' .. collectgarbage("count") / 1024)
@@ -36,7 +39,6 @@ function love.load()
     print('-----------------------------------')
   end)
   
-  input:bind('f3', function() camera:shake(4, 60, 1) end)
   input:bind('left', 'left')
   input:bind('right', 'right')
 
@@ -48,18 +50,36 @@ function love.load()
 end
 
 function love.update(dt)
-  camera:update(dt)
-  timer:update(dt)
-  if current_room then current_room:update(dt) end
+  camera:update(dt * slow_amount)
+  timer:update(dt * slow_amount)
+  if current_room then current_room:update(dt * slow_amount) end
 end
 
 function love.draw()
   if current_room then current_room:draw() end
+
+  if flash_frames then
+    flash_frames = flash_frames - 1
+    if flash_frames == -1 then flash_frames = nil end
+
+    love.graphics.setColor(background_color)
+    love.graphics.rectangle('fill', 0, 0, sx * gw, sy * gh)
+    love.graphics.setColor(255, 255, 255)
+  end
 end
 
 function resize(s)
   love.window.setMode(s*gw, s*gh)
   sx, sy = s, s
+end
+
+function slow(amount, duration)
+  slow_amount = amount
+  timer:tween('slow', duration, _G, {slow_amount = 1}, 'in-out-cubic')
+end
+
+function flash(frames)
+  flash_frames = frames
 end
 
 --- Room utils ---

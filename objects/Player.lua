@@ -26,6 +26,8 @@ function Player:update(dt)
   self.collider:setLinearVelocity(self.v * math.cos(self.r), self.v * math.sin(self.r))
 
   if self.x < 0 or self.y < 0 or self.x > gw or self.y > gh then self:die() end
+
+  input:bind('f4', function() self:die() end)
 end
 
 function Player:draw()
@@ -41,6 +43,16 @@ function Player:shoot()
 
   self.area:addGameObject('Projectile', self.x + 1.5 * d * math.cos(self.r),
     self.y + 1.5 * d * math.sin(self.r), {r = self.r})
+end
+
+function Player:die()
+  self.dead = true
+  flash(4)
+  slow(0.15, 1)
+  camera:shake(6, 60, 0.4)
+  for i = 1, love.math.random(8, 12) do
+    self.area:addGameObject('ExplodeParticle', self.x, self.y)
+  end
 end
 
 function Player:destroy()

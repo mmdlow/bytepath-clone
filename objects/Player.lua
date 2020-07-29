@@ -13,9 +13,15 @@ function Player:new(area, x, y, opts)
   self.base_max_v = 100         -- base max velocity
   self.max_v = self.base_max_v  -- current max velocity
   self.a = 100                  -- player acceleration
+  self.trail_color = skill_point_color
 
   self.timer:every(0.24, function() self:shoot() end)
   self.timer:every(5, function() self:tick() end)
+  self.timer:every(0.01, function()
+    self.area:addGameObject('TrailParticle',
+    self.x - self.w * math.cos(self.r), self.y - self.h * math.sin(self.r),
+    {parent = self, r = random(2, 4), d = random(0.15, 0.25), color = self.trail_color})
+  end)
 end
 
 function Player:update(dt)
@@ -25,8 +31,17 @@ function Player:update(dt)
   if input:down('right') then self.r = self.r + self.rv * dt end
 
   self.max_v = self.base_max_v
-  if input:down('up') then self.max_v = 1.5 * self.base_max_v end
-  if input:down('down') then self.max_v = 0.5 * self.base_max_v end
+  self.boosting = false
+  if input:down('up') then
+    self.boosting = true
+    self.max_v = 1.5 * self.base_max_v
+  end
+  if input:down('down') then
+    self.boosting = true
+    self.max_v = 0.5 * self.base_max_v
+  end
+  self.trail_color = skill_point_color
+  if self.boosting then self.trail_color = boost_color end
 
   self.v = math.min(self.v + self.a * dt, self.max_v)
   self.collider:setLinearVelocity(self.v * math.cos(self.r), self.v * math.sin(self.r))

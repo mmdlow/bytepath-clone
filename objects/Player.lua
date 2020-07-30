@@ -14,7 +14,7 @@ function Player:new(area, x, y, opts)
   self.max_v = self.base_max_v  -- current max velocity
   self.a = 100                  -- player acceleration
   self.trail_color = skill_point_color
-  self.ship = 'Rogue'
+  self.ship = 'Striker'
   self.polygons = {}
 
   self.timer:every(0.24, function() self:shoot() end)
@@ -29,6 +29,17 @@ function Player:new(area, x, y, opts)
       self.x - 0.9 * self.w * math.cos(self.r) + 0.2 * self.w * math.cos(self.r + math.pi / 2), 
       self.y - 0.9 * self.w * math.sin(self.r) + 0.2 * self.w * math.sin(self.r + math.pi / 2), 
       {parent = self, r = random(2, 4), d = random(0.15, 0.25), color = self.trail_color})
+    
+    elseif self.ship == 'Striker' then
+      self.area:addGameObject('TrailParticle',
+      self.x - 1.0 * self.w * math.cos(self.r) + 0.2 * self.w * math.cos(self.r - math.pi / 2), 
+      self.y - 1.0 * self.w * math.sin(self.r) + 0.2 * self.w * math.sin(self.r - math.pi / 2), 
+      {parent = self, r = random(2, 4), d = random(0.15, 0.25), color = self.trail_color})
+      self.area:addGameObject('TrailParticle',
+      self.x - 1.0 * self.w * math.cos(self.r) + 0.2 * self.w * math.cos(self.r + math.pi / 2), 
+      self.y - 1.0 * self.w * math.sin(self.r) + 0.2 * self.w * math.sin(self.r + math.pi / 2), 
+      {parent = self, r = random(2, 4), d = random(0.15, 0.25), color = self.trail_color})
+    
     elseif self.ship == 'Rogue' then
       self.area:addGameObject('TrailParticle',
       self.x - self.w * math.cos(self.r),
@@ -59,6 +70,35 @@ function Player:new(area, x, y, opts)
       -self.w * 1.5, self.h,
       -self.w * 0.75, self.h / 4,
       -self.w / 2, self.h / 2
+    }
+  elseif self.ship == 'Striker' then
+    self.polygons[1] = {
+      self.w, 0,
+      self.w/2, -self.h/2,
+      -self.w/2, -self.h/2,
+      -self.w, 0,
+      -self.w/2, self.h/2,
+      self.w/2, self.h/2,
+    }
+    self.polygons[2] = {
+      0, self.w/2,
+      -self.w/4, self.h,
+      0, self.w + self.h/2,
+      self.w, self.h,
+      0, 2*self.h,
+      -self.w/2, self.h + self.h/2,
+      -self.w, 0,
+      -self.w/2, self.h/2,
+    }
+    self.polygons[3] = {
+      0, -self.h/2,
+      -self.w/4, -self.h,
+      0, -self.h - self.h/2,
+      self.w, -self.h,
+      0, -2*self.h,
+      -self.w/2, -self.h - self.h/2,
+      -self.w, 0,
+      -self.w/2, -self.h/2,
     }
   elseif self.ship == 'Rogue' then
     self.polygons[1] = {

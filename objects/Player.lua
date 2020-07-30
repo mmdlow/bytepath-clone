@@ -6,6 +6,7 @@ function Player:new(area, x, y, opts)
   self.w, self.h = 12, 12
   self.collider = self.area.world:newCircleCollider(self.x, self.y, self.w)
   self.collider:setObject(self)
+  self.collider:setCollisionClass('Player')
 
   self.r = -math.pi / 2         -- angle player is moving toward (initially, up)
   self.rv = 1.66 * math.pi      -- velocity of angle change
@@ -136,6 +137,8 @@ function Player:update(dt)
 
   if input:down('left') then self.r = self.r - self.rv * dt end
   if input:down('right') then self.r = self.r + self.rv * dt end
+
+  if self.collider:enter('Collectable') then print('you got it!') end
   
   -- boost management
   self.max_v = self.base_max_v

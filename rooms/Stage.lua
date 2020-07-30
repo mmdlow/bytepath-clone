@@ -3,9 +3,17 @@ Stage = Object:extend()
 function Stage:new()
   self.area = Area(self)
   self.area:addPhysicsWorld()
+  self.area.world:addCollisionClass('Player')
+  self.area.world:addCollisionClass('Projectile', {ignores = {'Projectile'}})
+  self.area.world:addCollisionClass('Collectable', {ignores= {'Projectile', 'Collectable'}})
+  
   self.main_canvas = love.graphics.newCanvas(gw, gh)
 
-  self.area:addGameObject('Player', gw/2, gh/2)
+  self.player = self.area:addGameObject('Player', gw/2, gh/2)
+
+  input:bind('p', function()
+    self.area:addGameObject('Ammo', random(0, gw), random(0, gh))
+  end) -- generate ammo resource object
 end
 
 function Stage:update(dt)
@@ -33,4 +41,5 @@ end
 function Stage:destroy()
   self.area:destroy()
   self.area = nil
+  self.player = nil
 end

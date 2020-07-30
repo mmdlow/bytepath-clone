@@ -6,6 +6,7 @@ function Ammo:new(area, x, y, opts)
   self.w, self.h = 8, 8
   self.collider = self.area.world:newRectangleCollider(self.x, self.y, self.w, self.h)
   self.collider:setObject(self)
+  self.collider:setCollisionClass('Collectable')
   self.collider:setFixedRotation(false)
   self.r = random(0, 2 * math.pi)
   self.v = random(10, 20)
@@ -15,6 +16,17 @@ end
 
 function Ammo:update(dt)
   Ammo.super.update(self, dt)
+
+  local target = current_room.player
+  if target then
+    local projectile_heading = Vector(self.collider:getLinearVelocity()):normalized()
+    local angle = math.atan2(target.y - self.y, target.x - self.x)
+    local to_target_heading = Vector(math.cos(angle), math.sin(angle)):normalized()
+    local final_heading = (projectile_heading + 0.1 * to_target_heading):normalized()
+    self.collider:setLinearVelocity(self.v * final_heading.x, self.v * final_heading.y)
+  else
+    self.collider:setLinearVelocity(self.v * math.cos(self.r), self.v * math.cos(self.r))
+  end
 end
 
 function Ammo:draw()

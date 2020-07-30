@@ -8,6 +8,7 @@ function Projectile:new(area, x, y, opts)
 
   self.collider = self.area.world:newCircleCollider(self.x, self.y, self.s)
   self.collider:setObject(self)
+  self.collider:setCollisionClass('Projectile')
 end
 
 function Projectile:update(dt)

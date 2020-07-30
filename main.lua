@@ -3,7 +3,7 @@ Input = require 'libraries/boipushy/Input'
 Timer = require 'libraries/enhanced_timer/EnhancedTimer'
 Camera = require 'libraries/hump/camera'
 Physics = require 'libraries/windfield'
-Draft = require 'libraries/draft'
+Draft = require 'libraries/draft/draft'
 fn = require 'libraries/Moses/moses'
 
 require 'GameObject'
@@ -45,6 +45,7 @@ function love.load()
   input:bind('right', 'right')
   input:bind('up', 'up')
   input:bind('down', 'down')
+  input:bind('p', 'p')
 
   current_room = nil
   gotoRoom('Stage')

@@ -10,10 +10,13 @@ fn = require 'libraries/Moses/moses'
 require 'GameObject'
 require 'utils'
 require 'globals'
+require 'libraries/utf8'
 
 function love.load()
   love.graphics.setDefaultFilter('nearest', 'nearest')
   love.graphics.setLineStyle('rough')
+
+  loadFonts('resources/fonts')
 
   local object_files = {}
   recursiveEnumerate('objects', object_files)
@@ -114,6 +117,22 @@ function requireFiles(files)
   for _, file in ipairs(files) do
     local file = file:sub(1, -5) -- Remove '.lua' from end of string
     require(file)
+  end
+end
+
+function loadFonts(path)
+  fonts = {}
+  local font_paths = {}
+  recursiveEnumerate(path, font_paths)
+  for i = 8, 16, 1 do
+    for _, font_path in pairs(font_paths) do
+      local last_forward_slash_index = font_path:find('/[^/]*$')
+      local font_name = font_path:sub(last_forward_slash_index + 1, -5)
+      local font = love.graphics.newFont(font_path, i)
+      font:setFilter('nearest', 'nearest')
+      font_name = font_name .. '_' .. i
+      fonts[font_name] = font
+    end
   end
 end
 

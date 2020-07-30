@@ -36,6 +36,8 @@ function Boost:die()
   self.dead = true
   self.area:addGameObject('BoostEffect', self.x, self.y,
     {color = boost_color, w = self.w, h = self.h, r = self.collider:getAngle()})
+  self.area:addGameObject('InfoText', self.x, self.y,
+    {text = '+BOOST', color = boost_color})
 end
 
 function Boost:destroy()

@@ -31,3 +31,13 @@ function pushRotateScale(x, y, r, sx, sy)
   love.graphics.scale(sx or 1, sy or sx or 1)
   love.graphics.translate(-x, -y)
 end
+
+function getNegativeColors(colors)
+  local negative_colors = {}
+  for _, color in ipairs(colors) do
+    local nc = {}
+    for i = 1, #color do nc[i] = 255 - color[i] end
+    negative_colors[#negative_colors + 1] = nc
+  end
+  return negative_colors
+end

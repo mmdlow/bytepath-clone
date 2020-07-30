@@ -13,9 +13,10 @@ function Player:new(area, x, y, opts)
   self.base_max_v = 100         -- base max velocity
   self.max_v = self.base_max_v  -- current max velocity
   self.a = 100                  -- player acceleration
-
   self.ship = 'Striker'
-  self.polygons = {}
+
+  self.timer:every(0.24, function() self:shoot() end)
+  self.timer:every(5, function() self:tick() end)
 
   -- boost stats
   self.trail_color = skill_point_color
@@ -24,9 +25,6 @@ function Player:new(area, x, y, opts)
   self.can_boost = true
   self.boost_cooldown = 2
   self.boost_timer = 0
-
-  self.timer:every(0.24, function() self:shoot() end)
-  self.timer:every(5, function() self:tick() end)
 
   self.timer:every(0.01, function()
     if self.ship == 'Fighter' then
@@ -57,6 +55,16 @@ function Player:new(area, x, y, opts)
     end
   end)
 
+  -- hp stats
+  self.max_hp = 100
+  self.hp = self.max_hp
+
+  -- ammo stats
+  self.max_ammo = 100
+  self.ammo = self.max_ammo
+
+  -- ship design polygon points
+  self.polygons = {}
   if self.ship == 'Fighter' then
     self.polygons[1] = {
       self.w, 0,

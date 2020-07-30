@@ -3,6 +3,7 @@ Input = require 'libraries/boipushy/Input'
 Timer = require 'libraries/enhanced_timer/EnhancedTimer'
 Camera = require 'libraries/hump/camera'
 Physics = require 'libraries/windfield'
+Draft = require 'libraries/draft'
 fn = require 'libraries/Moses/moses'
 
 require 'GameObject'
@@ -24,6 +25,7 @@ function love.load()
   camera = Camera()
   timer = Timer()
   input = Input()
+  draft = Draft()
 
   slow_amount = 1
   flash_frames = nil

@@ -37,6 +37,15 @@ function Ammo:draw()
   love.graphics.setColor(default_color)
 end
 
+function Ammo:die()
+  self.dead = true
+  self.area:addGameObject('AmmoEffect', self.x, self.y,
+  {color = ammo_color, w = self.w, h = self.h})
+  for i = 1, love.math.random(4, 8) do
+    self.area:addGameObject('ExplodeParticle', self.x, self.y, {s = 3, color = ammo_color})
+  end
+end
+
 function Ammo:destroy()
   Ammo.super.destroy(self)
 end

@@ -138,7 +138,14 @@ function Player:update(dt)
   if input:down('left') then self.r = self.r - self.rv * dt end
   if input:down('right') then self.r = self.r + self.rv * dt end
 
-  if self.collider:enter('Collectable') then print('you got it!') end
+  if self.collider:enter('Collectable') then
+    local collision_data = self.collider:getEnterCollisionData('Collectable')
+    local object = collision_data.collider:getObject()
+    if object:is(Ammo) then
+      object:die()
+      self:addAmmo(5)
+    end
+  end
   
   -- boost management
   self.max_v = self.base_max_v
@@ -213,6 +220,10 @@ end
 
 function Player:tick()
   self.area:addGameObject('TickEffect', self.x, self.y, {parent = self})
+end
+
+function Player:addAmmo(amount)
+  self.ammo = math.min(self.ammo + amount, self.max_ammo)
 end
 
 function Player:die()

@@ -8,6 +8,8 @@ function GameObject:new(area, x, y, opts)
   self.x, self.y = x, y
   self.id = UUID()
   self.dead = false
+  self.depth = 50
+  self.creation_time = love.timer.getTime()
   self.timer = Timer()
 end
 

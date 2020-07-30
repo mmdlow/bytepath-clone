@@ -71,6 +71,7 @@ function Player:new(area, x, y, opts)
       -self.w * 0.75, self.h / 4,
       -self.w / 2, self.h / 2
     }
+
   elseif self.ship == 'Striker' then
     self.polygons[1] = {
       self.w, 0,
@@ -100,6 +101,7 @@ function Player:new(area, x, y, opts)
       -self.w, 0,
       -self.w/2, -self.h/2,
     }
+    
   elseif self.ship == 'Rogue' then
     self.polygons[1] = {
       self.w, 0,

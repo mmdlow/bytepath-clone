@@ -13,6 +13,10 @@ function random(min, max)
     (love.math.random() * (max - min) + min)
 end
 
+function table.random(t)
+  return t[love.math.random(1, #t)]
+end
+
 function pushRotate(x, y, r)
   love.graphics.push()
   love.graphics.translate(x, y)

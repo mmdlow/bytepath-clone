@@ -47,6 +47,7 @@ function love.load()
   input:bind('up', 'up')
   input:bind('down', 'down')
   input:bind('p', 'p')
+  input:bind('o', 'o')
 
   current_room = nil
   gotoRoom('Stage')

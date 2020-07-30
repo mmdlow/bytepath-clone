@@ -14,6 +14,9 @@ function Stage:new()
   input:bind('p', function()
     self.area:addGameObject('Ammo', random(0, gw), random(0, gh))
   end) -- generate ammo resource object
+  input:bind('o', function()
+    self.area:addGameObject('Boost', 0, 0)
+  end) -- generate boost resource object
 end
 
 function Stage:update(dt)

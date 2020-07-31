@@ -9,6 +9,8 @@ function Projectile:new(area, x, y, opts)
   self.collider = self.area.world:newCircleCollider(self.x, self.y, self.s)
   self.collider:setObject(self)
   self.collider:setCollisionClass('Projectile')
+
+  self.color = attacks[self.attack].color
 end
 
 function Projectile:update(dt)
@@ -19,11 +21,11 @@ function Projectile:update(dt)
 end
 
 function Projectile:draw()
-  love.graphics.setColor(default_color)
-
   pushRotate(self.x, self.y, Vector(self.collider:getLinearVelocity()):angleTo())
   love.graphics.setLineWidth(self.s, self.x / 4)
+  love.graphics.setColor(self.color)
   love.graphics.line(self.x - 2 * self.s, self.y, self.x, self.y) -- 1st half of line
+  love.graphics.setColor(default_color)
   love.graphics.line(self.x, self.y, self.x + 2 * self.s, self.y)
   love.graphics.setLineWidth(1)
   love.graphics.pop()

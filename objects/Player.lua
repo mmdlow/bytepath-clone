@@ -16,7 +16,6 @@ function Player:new(area, x, y, opts)
   self.a = 100                  -- player acceleration
   self.ship = 'Striker'
 
-  self.timer:every(0.24, function() self:shoot() end)
   self.timer:every(5, function() self:tick() end)
 
   -- boost stats
@@ -130,6 +129,11 @@ function Player:new(area, x, y, opts)
       self.w / 4, self.h * 0.75
     }
   end
+
+  -- set attack
+  self:setAttack('Double')
+  self.shoot_timer = 0
+  self.shoot_cooldown = 0.24
 end
 
 function Player:update(dt)
@@ -138,6 +142,14 @@ function Player:update(dt)
   if input:down('left') then self.r = self.r - self.rv * dt end
   if input:down('right') then self.r = self.r + self.rv * dt end
 
+  -- attack management
+  self.shoot_timer = self.shoot_timer + dt
+  if self.shoot_timer > self.shoot_cooldown then
+    self.shoot_timer = 0
+    self:shoot()
+  end
+
+  -- collectable behavior
   if self.collider:enter('Collectable') then
     local collision_data = self.collider:getEnterCollisionData('Collectable')
     local object = collision_data.collider:getObject()
@@ -221,8 +233,27 @@ function Player:shoot()
     self.y + d * math.sin(self.r),
     {player = self, d = d})
 
-  self.area:addGameObject('Projectile', self.x + 1.5 * d * math.cos(self.r),
-    self.y + 1.5 * d * math.sin(self.r), {r = self.r})
+  if self.attack == 'Neutral' then
+    self.area:addGameObject('Projectile', self.x + 1.5 * d * math.cos(self.r),
+      self.y + 1.5 * d * math.sin(self.r), {r = self.r, attack = self.attack})
+
+  elseif self.attack == 'Double' then
+    self.ammo = self.ammo - attacks[self.attack].ammo
+    self.area:addGameObject('Projectile',
+      self.x + 1.5 * d * math.cos(self.r + math.pi / 12),
+      self.y + 1.5 * d * math.sin(self.r - math.pi / 12),
+      {r = self.r + math.pi/12, attack = self.attack})
+    self.area:addGameObject('Projectile',
+      self.x + 1.5 * d * math.cos(self.r + math.pi / 12),
+      self.y + 1.5 * d * math.sin(self.r - math.pi / 12),
+      {r = self.r - math.pi/12, attack = self.attack})
+  end
+
+  -- revert to Neutral attack if out of ammo
+  if self.ammo <= 0 then
+    self:setAttack('Neutral')
+    self.ammo = self.max_ammo
+  end
 end
 
 function Player:tick()
@@ -235,6 +266,12 @@ end
 
 function Player:addHP(amount)
   self.hp = math.min(self.hp + amount, self.max_hp)
+end
+
+function Player:setAttack(attack)
+  self.attack = attack
+  self.shoot_cooldown = attacks[attack].cooldown
+  self.ammo = self.max_ammo
 end
 
 function Player:die()

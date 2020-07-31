@@ -54,6 +54,14 @@ function HP:draw()
   love.graphics.setColor(default_color)
 end
 
+function HP:die()
+  self.dead = true
+  self.area:addGameObject('HPEffect', self.x, self.y,
+    {color = hp_color, w = self.w, h = self.h, cross = self.cross})
+  self.area:addGameObject('InfoText', self.x, self.y,
+    {text = '+HP', color = hp_color})
+end
+
 function HP:destroy()
   HP.super.destroy(self)
 end

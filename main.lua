@@ -18,6 +18,10 @@ function love.load()
 
   loadFonts('resources/fonts')
 
+  local parent_object_files = {}
+  recursiveEnumerate('parent_objects', parent_object_files)
+  requireFiles(parent_object_files)
+
   local object_files = {}
   recursiveEnumerate('objects', object_files)
   requireFiles(object_files)
@@ -49,9 +53,10 @@ function love.load()
   input:bind('right', 'right')
   input:bind('up', 'up')
   input:bind('down', 'down')
-  input:bind('p', 'p')
-  input:bind('o', 'o')
-  input:bind('i', 'i')
+  input:bind('1', '1')
+  input:bind('2', '2')
+  input:bind('3', '3')
+  input:bind('4', '4')
 
   current_room = nil
   gotoRoom('Stage')

@@ -1,7 +1,7 @@
-BoostEffect = GameObject:extend()
+RhombusCollectableEffect = GameObject:extend()
 
-function BoostEffect:new(area, x, y, opts)
-  BoostEffect.super.new(self, area, x, y, opts)
+function RhombusCollectableEffect:new(area, x, y, opts)
+  RhombusCollectableEffect.super.new(self, area, x, y, opts)
 
   self.depth = 75
 
@@ -24,15 +24,15 @@ function BoostEffect:new(area, x, y, opts)
   self.timer:tween(0.35, self, {sx = 2, sy = 2}, 'in-out-cubic')
 end
 
-function BoostEffect:update(dt)
-  BoostEffect.super.update(self, dt)
+function RhombusCollectableEffect:update(dt)
+  RhombusCollectableEffect.super.update(self, dt)
 end
 
-function BoostEffect:draw()
+function RhombusCollectableEffect:draw()
   if not self.visible then return end
 
   love.graphics.setColor(self.current_color)
-  -- rotate effect at boost's last captured angle pre-death
+  -- rotate effect at collectable's last captured angle pre-death
   pushRotate(self.x, self.y, self.r)
   draft:rhombus(self.x, self.y, 1.34 * self.w, 1.34 * self.h, 'fill')
   draft:rhombus(self.x, self.y, self.sx * 2 * self.w, self.sy * 2 * self.h, 'line')
@@ -40,6 +40,6 @@ function BoostEffect:draw()
   love.graphics.setColor(default_color)
 end
 
-function BoostEffect:destroy()
-  BoostEffect.super.destroy(self)
+function RhombusCollectableEffect:destroy()
+  RhombusCollectableEffect.super.destroy(self)
 end

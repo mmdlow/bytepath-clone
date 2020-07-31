@@ -11,14 +11,17 @@ function Stage:new()
 
   self.player = self.area:addGameObject('Player', gw/2, gh/2)
 
-  input:bind('p', function()
+  input:bind('1', function()
     self.area:addGameObject('Ammo', random(0, gw), random(0, gh))
   end) -- generate ammo resource object
-  input:bind('o', function()
+  input:bind('2', function()
     self.area:addGameObject('Boost', 0, 0)
   end) -- generate boost resource object
-  input:bind('i', function()
+  input:bind('3', function()
     self.area:addGameObject('HP', 0, 0)
+  end) -- generate HP resource object
+  input:bind('4', function()
+    self.area:addGameObject('SP', 0, 0)
   end) -- generate HP resource object
 end
 

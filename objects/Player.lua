@@ -147,6 +147,8 @@ function Player:update(dt)
     elseif object:is(HP) then
       object:die()
       self:addHP(25)
+    elseif object:is(SP) then
+      object:die()
     elseif object:is(Boost) then
       object:die()
     end

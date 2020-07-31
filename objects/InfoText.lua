@@ -11,10 +11,6 @@ function InfoText:new(area, x, y, opts)
   self.characters = {}
   for i = 1, #self.text do table.insert(self.characters, self.text:utf8sub(i, i)) end
 
-  local default_colors = {default_color, hp_color, ammo_color, boost_color, skill_point_color}
-  local negative_colors = getNegativeColors(default_colors)
-  self.all_colors = fn.append(default_colors, negative_colors)
-
   self.timer:after(0.70, function()
     self.timer:every(0.05, function() self.visible = not self.visible end)
     self.timer:after(0.35, function() self.visible = true end)
@@ -28,13 +24,13 @@ function InfoText:new(area, x, y, opts)
         end
 
         if love.math.random(1, 10) <= 1 then
-          self.background_colors[i] = table.random(self.all_colors)
+          self.background_colors[i] = table.random(all_colors)
         else
           self.background_colors[i] = nil
         end
 
         if love.math.random(1, 10) <= 2 then
-          self.foreground_colors[i] = table.random(self.all_colors)
+          self.foreground_colors[i] = table.random(all_colors)
         else
           self.background_colors[i] = nil
         end

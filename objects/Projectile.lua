@@ -11,9 +11,18 @@ function Projectile:new(area, x, y, opts)
   self.collider:setCollisionClass('Projectile')
 
   self.color = attacks[self.attack].color
+  self.color_switch = true
 end
 
 function Projectile:update(dt)
+  -- if Spread attack, set projectile color to a random color every other frame
+  self.color_switch = not self.color_switch
+  if (self.attack == 'Spread' and self.color_switch) then
+    self.color = table.random(all_colors)
+  else
+    self.color = attacks[self.attack].color
+  end
+  
   Projectile.super.update(self, dt)
   self.collider:setLinearVelocity(self.v * math.cos(self.r), self.v * math.sin(self.r))
 

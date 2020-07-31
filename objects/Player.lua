@@ -131,9 +131,9 @@ function Player:new(area, x, y, opts)
   end
 
   -- set attack
-  self:setAttack('Double')
+  self:setAttack('Spread')
   self.shoot_timer = 0
-  self.shoot_cooldown = 0.24
+  self.shoot_cooldown = attacks[self.attack].cooldown
 end
 
 function Player:update(dt)
@@ -233,20 +233,64 @@ function Player:shoot()
     self.y + d * math.sin(self.r),
     {player = self, d = d})
 
+  self.ammo = self.ammo - attacks[self.attack].ammo
+
   if self.attack == 'Neutral' then
     self.area:addGameObject('Projectile', self.x + 1.5 * d * math.cos(self.r),
       self.y + 1.5 * d * math.sin(self.r), {r = self.r, attack = self.attack})
 
   elseif self.attack == 'Double' then
-    self.ammo = self.ammo - attacks[self.attack].ammo
     self.area:addGameObject('Projectile',
       self.x + 1.5 * d * math.cos(self.r + math.pi / 12),
-      self.y + 1.5 * d * math.sin(self.r - math.pi / 12),
+      self.y + 1.5 * d * math.sin(self.r + math.pi / 12),
       {r = self.r + math.pi/12, attack = self.attack})
     self.area:addGameObject('Projectile',
-      self.x + 1.5 * d * math.cos(self.r + math.pi / 12),
+      self.x + 1.5 * d * math.cos(self.r - math.pi / 12),
       self.y + 1.5 * d * math.sin(self.r - math.pi / 12),
       {r = self.r - math.pi/12, attack = self.attack})
+
+  elseif self.attack == 'Triple' then
+    self.area:addGameObject('Projectile',
+      self.x + 1.5 * d * math.cos(self.r + math.pi / 12),
+      self.y + 1.5 * d * math.sin(self.r + math.pi / 12),
+      {r = self.r + math.pi/12, attack = self.attack})
+    self.area:addGameObject('Projectile',
+      self.x + 1.5 * d * math.cos(self.r),
+      self.y + 1.5 * d * math.sin(self.r),
+      {r = self.r, attack = self.attack})
+    self.area:addGameObject('Projectile',
+      self.x + 1.5 * d * math.cos(self.r - math.pi / 12),
+      self.y + 1.5 * d * math.sin(self.r - math.pi / 12),
+      {r = self.r - math.pi/12, attack = self.attack})
+
+  elseif self.attack == 'Rapid' then
+    self.area:addGameObject('Projectile', self.x + 1.5 * d * math.cos(self.r),
+      self.y + 1.5 * d * math.sin(self.r), {r = self.r, attack = self.attack})
+
+  elseif self.attack == 'Spread' then
+    self.area:addGameObject('Projectile',
+      self.x + 1.5 * d * math.cos(self.r),
+      self.y + 1.5 * d * math.sin(self.r),
+      {r = self.r + random(-math.pi / 8, math.pi / 8), attack = self.attack})
+
+  elseif self.attack == 'Back' then
+    self.area:addGameObject('Projectile', self.x + 1.5 * d * math.cos(self.r),
+      self.y + 1.5 * d * math.sin(self.r), {r = self.r, attack = self.attack})
+    self.area:addGameObject('Projectile', self.x - 1.5 * d * math.cos(self.r),
+      self.y - 1.5 * d * math.sin(self.r), {r = self.r + math.pi, attack = self.attack})
+
+  elseif self.attack == 'Side' then
+    self.area:addGameObject('Projectile',
+      self.x + 1.5 * d * math.cos(self.r + math.pi / 2),
+      self.y + 1.5 * d * math.sin(self.r + math.pi / 2),
+      {r = self.r + math.pi / 2, attack = self.attack})
+    self.area:addGameObject('Projectile', self.x + 1.5 * d * math.cos(self.r),
+      self.y + 1.5 * d * math.sin(self.r), {r = self.r, attack = self.attack})
+    self.area:addGameObject('Projectile',
+      self.x + 1.5 * d * math.cos(self.r - math.pi / 2),
+      self.y + 1.5 * d * math.sin(self.r - math.pi / 2),
+      {r = self.r - math.pi / 2, attack = self.attack})
+  
   end
 
   -- revert to Neutral attack if out of ammo

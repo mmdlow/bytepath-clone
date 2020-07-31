@@ -17,6 +17,9 @@ function Stage:new()
   input:bind('o', function()
     self.area:addGameObject('Boost', 0, 0)
   end) -- generate boost resource object
+  input:bind('i', function()
+    self.area:addGameObject('HP', 0, 0)
+  end) -- generate HP resource object
 end
 
 function Stage:update(dt)

@@ -10,9 +10,6 @@ function EnemyProjectile:new(area, x, y, opts)
   self.collider:setObject(self)
   self.collider:setCollisionClass('EnemyProjectile')
 
-  self.color = attacks[self.attack].color
-  self.color_switch = true
-
   self.damage = 10
 end
 
@@ -37,6 +34,11 @@ function EnemyProjectile:draw()
   love.graphics.setLineWidth(1)
   love.graphics.pop()
   love.graphics.setColor(default_color)
+end
+
+function EnemyProjectile:die()
+  self.dead = true
+  self.area:addGameObject('ProjectileDeathEffect', self.x, self.y, {color = hp_color, w = 3 * self.s})
 end
 
 function EnemyProjectile:destroy()

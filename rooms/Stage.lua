@@ -32,6 +32,9 @@ function Stage:new()
   input:bind('6', function()
     self.area:addGameObject('Rock', 0, 0)
   end) -- generate Rock enemy
+  input:bind('7', function()
+    self.area:addGameObject('Shooter', 0, 0)
+  end) -- generate Shooter enemy
 end
 
 function Stage:update(dt)

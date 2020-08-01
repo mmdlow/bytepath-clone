@@ -33,6 +33,6 @@ function Attack:die()
     self.area:addGameObject('AttackEffect', self.x, self.y,
       {color = attacks[self.attack].color, w = 1.3 * self.w, h = 1.3 * self.h})
   end
-  self.area:addGameObject('InfoText', self.x + table.random({-1, 1}) * self.w, self.y + table.random{-1, 1} * self.h,
+  self.area:addGameObject('InfoText', self.x + table.random({-1, 1}) * self.w, self.y + table.random({-1, 1}) * self.h,
     {color = attacks[self.attack].color, text = self.attack})
 end

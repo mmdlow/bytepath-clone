@@ -38,7 +38,8 @@ function RhombusCollectable:die()
   self.area:addGameObject('RhombusCollectableEffect', self.x, self.y,
     {color = self.main_color, w = self.w, h = self.h, r = self.collider:getAngle()})
   if self.die_text then
-    self.area:addGameObject('InfoText', self.x, self.y,
+    self.area:addGameObject('InfoText',
+    self.x + table.random({-1, 1}) * self.w, self.y + table.random({-1, 1}) * self.h,
     {text = self.die_text, color = self.main_color})
   end
 end

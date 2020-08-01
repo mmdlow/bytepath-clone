@@ -7,7 +7,7 @@ function HP:new(area, x, y, opts)
   self.x = gw / 2 + direction * (gw / 2 + 48)
   self.y = random(48, gh - 48)
 
-  self.w, self.h = 6, self.w
+  self.w, self.h = 6, 6
   self.collider = self.area.world:newCircleCollider(self.x, self.y, self.w)
   self.collider:setObject(self)
   self.collider:setCollisionClass('Collectable')
@@ -56,7 +56,8 @@ end
 
 function HP:die()
   self.dead = true
-  self.area:addGameObject('HPEffect', self.x, self.y,
+  self.area:addGameObject('HPEffect',
+    self.x + table.random({-1, 1}) * self.w, self.y + table.random({-1, 1}) * self.h,
     {color = hp_color, w = self.w, h = self.h, cross = self.cross})
   self.area:addGameObject('InfoText', self.x, self.y,
     {text = '+HP', color = hp_color})

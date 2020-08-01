@@ -17,8 +17,17 @@ function EnemyProjectile:update(dt)
   if self.collider:enter('Player') then
     local collision_data = self.collider:getEnterCollisionData('Player')
     local object = collision_data.collider:getObject()
-    object:hit(self.damage)
-    self:die()
+    if object then
+      object:hit(self.damage)
+      self:die()
+    end
+  elseif self.collider:enter('Projectile') then
+    local collision_data = self.collider:getEnterCollisionData('Projectile')
+    local object = collision_data.collider:getObject()
+    if object then
+      object:die()
+      self:die()
+    end
   end
 
   EnemyProjectile.super.update(self, dt)

@@ -62,6 +62,7 @@ function love.load()
   input:bind('3', '3')
   input:bind('4', '4')
   input:bind('5', '5')
+  input:bind('6', '6')
 
   current_room = nil
   gotoRoom('Stage')

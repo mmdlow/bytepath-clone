@@ -158,7 +158,7 @@ function Player:update(dt)
       self:addAmmo(5)
     elseif object:is(HP) then
       object:die()
-      self:addHP(25)
+      self:changeHP(25)
     elseif object:is(SP) then
       object:die()
     elseif object:is(Boost) then
@@ -167,6 +167,8 @@ function Player:update(dt)
       object:die()
       self:setAttack(object.attack)
     end
+  elseif self.collider:enter('Enemy') then
+    self:hit(30)
   end
   
   -- boost management
@@ -211,6 +213,7 @@ function Player:update(dt)
 end
 
 function Player:draw()
+  if self.invisible then return end
   pushRotate(self.x, self.y, self.r)
   love.graphics.setColor(default_color)
   
@@ -311,14 +314,40 @@ function Player:addAmmo(amount)
   self.ammo = math.min(self.ammo + amount, self.max_ammo)
 end
 
-function Player:addHP(amount)
+function Player:changeHP(amount)
   self.hp = math.min(self.hp + amount, self.max_hp)
+  if self.hp <= 0 then self:die() end
 end
 
 function Player:setAttack(attack)
   self.attack = attack
   self.shoot_cooldown = attacks[attack].cooldown
   self.ammo = self.max_ammo
+end
+
+function Player:hit(damage)
+  if self.invincible then return end
+  local damage = damage or 10
+  self:changeHP(-damage)
+  for i = 1, love.math.random(4, 8) do
+    self.area:addGameObject('ExplodeParticle', self.x, self.y)
+  end
+
+  if damage >= 30 then
+    self.invincible = true
+    self.invisible = true
+    self.timer:every(0.04, function() self.invisible = not self.invisible end, 50)
+    self.timer:after(2, function() self.invincible = false end)
+    self.timer:after(2.04, function() self.invisible = false end)
+    camera:shake(6, 60, 0.2)
+    flash(3)
+    slow(0.25, 0.5)
+  else
+    camera:shake(6, 60, 0.1)
+    flash(2)
+    slow(0.75, 0.25)
+  end
+
 end
 
 function Player:die()

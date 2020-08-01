@@ -12,9 +12,18 @@ function Projectile:new(area, x, y, opts)
 
   self.color = attacks[self.attack].color
   self.color_switch = true
+
+  self.damage = 100
 end
 
 function Projectile:update(dt)
+  if self.collider:enter('Enemy') then
+    local collision_data = self.collider:getEnterCollisionData('Enemy')
+    local object = collision_data.collider:getObject()
+    object:hit(self.damage)
+    self:die()
+  end
+
   -- if Spread attack, set projectile color to a random color every other frame
   self.color_switch = not self.color_switch
   if (self.attack == 'Spread' and self.color_switch) then

@@ -4,6 +4,7 @@ function Stage:new()
   self.area = Area(self)
   self.area:addPhysicsWorld()
   self.area.world:addCollisionClass('Player')
+  self.area.world:addCollisionClass('Enemy', {ignores = {'Player'}})
   self.area.world:addCollisionClass('Projectile', {ignores = {'Projectile'}})
   self.area.world:addCollisionClass('Collectable', {ignores= {'Projectile', 'Collectable'}})
   
@@ -26,6 +27,9 @@ function Stage:new()
   input:bind('5', function()
     self.area:addGameObject('Attack', 0, 0)
   end) -- generate Attack resource object
+  input:bind('6', function()
+    self.area:addGameObject('Rock', 0, 0)
+  end) -- generate Rock enemy
 end
 
 function Stage:update(dt)

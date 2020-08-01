@@ -23,6 +23,9 @@ function Stage:new()
   input:bind('4', function()
     self.area:addGameObject('SP', 0, 0)
   end) -- generate HP resource object
+  input:bind('5', function()
+    self.area:addGameObject('Attack', 0, 0)
+  end) -- generate Attack resource object
 end
 
 function Stage:update(dt)

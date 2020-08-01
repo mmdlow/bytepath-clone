@@ -163,6 +163,9 @@ function Player:update(dt)
       object:die()
     elseif object:is(Boost) then
       object:die()
+    elseif object:is(Attack) then
+      object:die()
+      self:setAttack(object.attack)
     end
   end
   

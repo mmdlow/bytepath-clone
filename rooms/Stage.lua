@@ -62,6 +62,12 @@ function Stage:draw()
   love.graphics.setBlendMode('alpha')
 end
 
+function Stage:finish()
+  timer:after(1, function()
+    gotoRoom('Stage')
+  end)
+end
+
 function Stage:destroy()
   self.area:destroy()
   self.area = nil

@@ -131,7 +131,7 @@ function Player:new(area, x, y, opts)
   end
 
   -- set attack
-  self:setAttack('Spread')
+  self:setAttack('Neutral')
   self.shoot_timer = 0
   self.shoot_cooldown = attacks[self.attack].cooldown
 end
@@ -358,6 +358,7 @@ function Player:die()
   for i = 1, love.math.random(8, 12) do
     self.area:addGameObject('ExplodeParticle', self.x, self.y)
   end
+  current_room:finish()
 end
 
 function Player:destroy()

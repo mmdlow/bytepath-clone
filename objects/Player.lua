@@ -211,7 +211,10 @@ function Player:update(dt)
   self.collider:setLinearVelocity(self.v * math.cos(self.r), self.v * math.sin(self.r))
 
   -- death if player hits the edges
-  if self.x < 0 or self.y < 0 or self.x > gw or self.y > gh then self:die() end
+  if self.x < 0 or self.y < 0 or self.x > gw or self.y > gh then
+    self.hp = 0
+    self:die()
+  end
 
   input:bind('f4', function() self:die() end) -- to see death effect
 end
@@ -320,7 +323,7 @@ function Player:addAmmo(amount)
 end
 
 function Player:changeHP(amount)
-  self.hp = math.min(self.hp + amount, self.max_hp)
+  self.hp = math.min(math.max(self.hp + amount, 0), self.max_hp)
   if self.hp <= 0 then self:die() end
 end
 

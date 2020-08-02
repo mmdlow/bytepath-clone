@@ -16,8 +16,6 @@ function Player:new(area, x, y, opts)
   self.a = 100                  -- player acceleration
   self.ship = 'Striker'
 
-  self.timer:every(5, function() self:tick() end)
-
   -- boost stats
   self.trail_color = skill_point_color
   self.max_boost = 100
@@ -62,6 +60,10 @@ function Player:new(area, x, y, opts)
   -- ammo stats
   self.max_ammo = 100
   self.ammo = self.max_ammo
+
+  -- cycle stats
+  self.cycle_timer = 0
+  self.cycle_cooldown = 5
 
   -- ship design polygon points
   self.polygons = {}
@@ -173,6 +175,13 @@ function Player:update(dt)
     end
   elseif self.collider:enter('Enemy') then
     self:hit(30)
+  end
+
+  -- cycle management
+  self.cycle_timer = self.cycle_timer + dt
+  if self.cycle_timer > self.cycle_cooldown then
+    self.cycle_timer = 0
+    self:cycle()
   end
   
   -- boost management
@@ -313,7 +322,7 @@ function Player:shoot()
   end
 end
 
-function Player:tick()
+function Player:cycle()
   self.area:addGameObject('TickEffect', self.x, self.y, {parent = self})
 end
 

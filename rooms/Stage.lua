@@ -106,6 +106,14 @@ function Stage:draw()
 
     -- Cycle (TODO)
     -- position: (gw / 2 + 4, gh - 16)
+    local r, g, b = unpack(default_color)
+    local cycle, max_cycle = self.player.cycle_timer, self.player.cycle_cooldown
+    love.graphics.setColor(r, g, b)
+    love.graphics.rectangle('fill', gw / 2 + 4, gh - 16, 48 * (cycle / max_cycle), 4)
+    love.graphics.setColor(r - 32, g - 32, b - 32)
+    love.graphics.rectangle('line', gw / 2 + 4, gh - 16, 48, 4)
+    love.graphics.print('CYCLE', gw / 2 + 4 + 24, gh - 24, 0, 1, 1,
+      math.floor(self.font:getWidth('CYCLE') / 2), math.floor(self.font:getHeight() / 2))
 
   love.graphics.setCanvas()
 

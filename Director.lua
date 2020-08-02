@@ -36,6 +36,7 @@ function Director:new(stage)
   end
   self:setEnemySpawnsForThisRound()
   self:setResourceSpawns()
+  self:setAttackSpawns()
 end
 
 function Director:update(dt)
@@ -75,9 +76,14 @@ function Director:setEnemySpawnsForThisRound()
 end
 
 function Director:setResourceSpawns()
-  local resc_list = {}
   self.timer:every(16, function()
     local resource = self.resource_spawn_chances:next()
     self.stage.area:addGameObject(resource)
+  end)
+end
+
+function Director:setAttackSpawns()
+  self.timer:every(30, function()
+    self.stage.area:addGameObject('Attack')
   end)
 end

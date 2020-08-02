@@ -45,6 +45,7 @@ function Rock:hit(damage)
 end
 
 function Rock:die()
+  current_room.score = current_room.score + 100
   self.dead = true
   self.area:addGameObject('EnemyDeathEffect', self.x, self.y,
     {color = hp_color, w = 2.5 * self.w, h = 2.5 * self.h})

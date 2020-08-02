@@ -16,6 +16,8 @@ function Stage:new()
 
   self.director = Director(self)
 
+  self.score = 0
+
   input:bind('1', function()
     self.area:addGameObject('Ammo', random(0, gw), random(0, gh))
   end) -- generate ammo resource object

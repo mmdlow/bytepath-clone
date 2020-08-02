@@ -161,6 +161,7 @@ function Player:update(dt)
       self:changeHP(25)
     elseif object:is(SP) then
       object:die()
+      skill_points = skill_points + 1
       current_room.score = current_room.score + 250
     elseif object:is(Boost) then
       current_room.score = current_room.score + 150
@@ -168,6 +169,7 @@ function Player:update(dt)
     elseif object:is(Attack) then
       object:die()
       self:setAttack(object.attack)
+      current_room.score  = current_room.score + 500
     end
   elseif self.collider:enter('Enemy') then
     self:hit(30)
@@ -326,7 +328,6 @@ function Player:setAttack(attack)
   self.attack = attack
   self.shoot_cooldown = attacks[attack].cooldown
   self.ammo = self.max_ammo
-  current_room.score  = current_room.score + 500
 end
 
 function Player:hit(damage)

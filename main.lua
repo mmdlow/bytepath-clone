@@ -67,6 +67,7 @@ function love.load()
   input:bind('7', '7')
 
   current_room = nil
+  skill_points = 0
   gotoRoom('Stage')
 
   resize(3)

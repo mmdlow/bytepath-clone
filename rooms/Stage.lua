@@ -11,12 +11,10 @@ function Stage:new()
   self.area.world:addCollisionClass('Collectable', {ignores= {'Projectile', 'Collectable'}})
   
   self.main_canvas = love.graphics.newCanvas(gw, gh)
-
   self.player = self.area:addGameObject('Player', gw/2, gh/2)
-
   self.director = Director(self)
-
   self.score = 0
+  self.font = fonts.m5x7_16
 
   input:bind('1', function()
     self.area:addGameObject('Ammo', random(0, gw), random(0, gh))
@@ -53,9 +51,23 @@ function Stage:draw()
   love.graphics.setCanvas(self.main_canvas)
   love.graphics.clear()
     camera:attach(0, 0, gw, gh)
-      -- love.graphics.circle('line', gw/2, gh/2, 50)
-      self.area:draw()
+    self.area:draw()
     camera:detach()
+      
+    love.graphics.setFont(self.font)
+
+    -- Score
+    love.graphics.setColor(default_color)
+    love.graphics.print(self.score, gw - 20, 10, 0, 1, 1,
+      math.floor(self.font:getWidth(self.score) / 2), self.font:getHeight() / 2)
+    love.graphics.setColor(255, 255, 255)
+
+    -- SP
+    love.graphics.setColor(skill_point_color)
+    love.graphics.print(skill_points .. 'SP', 20, 10, 0, 1, 1,
+      math.floor(self.font:getWidth(skill_points) / 2), self.font:getHeight() / 2)
+    love.graphics.setColor(255, 255, 255)
+
   love.graphics.setCanvas()
 
   love.graphics.setColor(255, 255, 255, 255)

@@ -14,6 +14,8 @@ function Stage:new()
 
   self.player = self.area:addGameObject('Player', gw/2, gh/2)
 
+  self.director = Director(self)
+
   input:bind('1', function()
     self.area:addGameObject('Ammo', random(0, gw), random(0, gh))
   end) -- generate ammo resource object
@@ -38,6 +40,7 @@ function Stage:new()
 end
 
 function Stage:update(dt)
+  self.director:update(dt)
   camera.smoother = Camera.smooth.damped(5)
   camera:lockPosition(dt, gw/2, gh/2)
 

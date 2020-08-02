@@ -8,6 +8,7 @@ Draft = require 'libraries/draft/draft'
 fn = require 'libraries/Moses/moses'
 
 require 'GameObject'
+require 'Director'
 require 'utils'
 require 'globals'
 require 'libraries/utf8'

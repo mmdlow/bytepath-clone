@@ -158,13 +158,13 @@ function Player:update(dt)
       self:addAmmo(5)
     elseif object:is(HP) then
       object:die()
-      self:changeHP(25)
+      self:setHP(25)
     elseif object:is(SP) then
       object:die()
       skill_points = skill_points + 1
       current_room.score = current_room.score + 250
     elseif object:is(Boost) then
-      current_room.score = current_room.score + 150
+      self:addBoost(25)
       object:die()
     elseif object:is(Attack) then
       object:die()
@@ -322,7 +322,12 @@ function Player:addAmmo(amount)
   current_room.score = current_room.score + 50
 end
 
-function Player:changeHP(amount)
+function Player:addBoost(amount)
+  self.boost = math.min(self.boost + amount, self.max_boost)
+  current_room.score = current_room.score + 150
+end
+
+function Player:setHP(amount)
   self.hp = math.min(math.max(self.hp + amount, 0), self.max_hp)
   if self.hp <= 0 then self:die() end
 end
@@ -336,7 +341,7 @@ end
 function Player:hit(damage)
   if self.invincible then return end
   local damage = damage or 10
-  self:changeHP(-damage)
+  self:setHP(-damage)
   for i = 1, love.math.random(4, 8) do
     self.area:addGameObject('ExplodeParticle', self.x, self.y)
   end

@@ -20,6 +20,8 @@ function Director:new(stage)
     ['Shooter'] = 2
   }
 
+  self.resource_spawn_chances = chanceList({'Boost', 28}, {'HP', 14}, {'SP', 58})
+
   self.enemy_spawn_chances = {
     [1] = chanceList({'Rock', 1}),
     [2] = chanceList({'Rock', 8}, {'Shooter', 4}),
@@ -33,6 +35,7 @@ function Director:new(stage)
     )
   end
   self:setEnemySpawnsForThisRound()
+  self:setResourceSpawns()
 end
 
 function Director:update(dt)
@@ -69,4 +72,12 @@ function Director:setEnemySpawnsForThisRound()
       self.stage.area:addGameObject(enemy_list[i])
     end)
   end
+end
+
+function Director:setResourceSpawns()
+  local resc_list = {}
+  self.timer:every(16, function()
+    local resource = self.resource_spawn_chances:next()
+    self.stage.area:addGameObject(resource)
+  end)
 end

@@ -24,6 +24,7 @@ function Player:new(area, x, y, opts)
   self.boost_cooldown = 2
   self.boost_timer = 0
 
+  -- trail particles
   self.timer:every(0.01, function()
     if self.ship == 'Fighter' then
       self.area:addGameObject('TrailParticle',
@@ -153,7 +154,8 @@ function Player:new(area, x, y, opts)
   self.regain_hp_on_ammo_pickup_chance = 0
   self.regain_hp_on_sp_pickup_chance = 0
   self.spawn_haste_area_on_hp_pickup_chance = 0
-  self.spawn_haste_area_on_sp_pickup_chance = 90
+  self.spawn_haste_area_on_sp_pickup_chance = 0
+  self.spawn_sp_on_cycle_chance = 0
 
   self:setStats()
   self:setChances()
@@ -270,8 +272,6 @@ function Player:update(dt)
     self.hp = 0
     self:die()
   end
-
-  input:bind('f4', function() self:die() end) -- to see death effect
 end
 
 function Player:draw()
@@ -374,6 +374,14 @@ end
 
 function Player:cycle()
   self.area:addGameObject('TickEffect', self.x, self.y, {parent = self})
+  self:onCycle()
+end
+
+function Player:onCycle()
+  if self.chances.spawn_sp_on_cycle_chance:next() then
+    self.area:addGameObject('SP')
+    self.area:addGameObject('InfoText', self.x, self.y, {text = 'SP Spawn!', color = skill_point_color})
+  end
 end
 
 function Player:onSPPickup()

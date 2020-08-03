@@ -153,10 +153,21 @@ function Player:new(area, x, y, opts)
   self.launch_homing_projectile_on_ammo_pickup_chance = 0
   self.regain_hp_on_ammo_pickup_chance = 0
   self.regain_hp_on_sp_pickup_chance = 0
-  self.spawn_haste_area_on_hp_pickup_chance = 0
+  self.regain_hp_on_cycle_chance = 0
+  self.regain_full_ammo_on_cycle_chance = 0
   self.spawn_haste_area_on_sp_pickup_chance = 0
+  self.spawn_haste_area_on_hp_pickup_chance = 0
+  self.spawn_haste_area_on_cycle_chance = 0
   self.spawn_sp_on_cycle_chance = 0
+  self.spawn_hp_on_cycle_chance = 0
+  self.change_attack_on_cycle_chance = 0
+  self.barrage_on_cycle_chance = 0
+  self.launch_homing_projectile_on_cycle_chance = 0
   self.barrage_on_kill_chance = 0
+  self.regain_ammo_on_kill_chance = 0
+  self.launch_homing_projectile_on_kill_chance = 0
+  self.regain_boost_on_kill_chance = 0
+  self.spawn_boost_on_kill_chance = 0
 
   self:setStats()
   self:setChances()
@@ -383,6 +394,47 @@ function Player:onCycle()
     self.area:addGameObject('SP')
     self.area:addGameObject('InfoText', self.x, self.y, {text = 'SP Spawn!', color = skill_point_color})
   end
+  if self.chances.spawn_hp_on_cycle_chance:next() then
+    self.area:addGameObject('HP')
+    self.area:addGameObject('InfoText', self.x, self.y, {text = 'HP Spawn!', color = hp_color})
+  end
+  if self.chances.regain_hp_on_cycle_chance:next() then
+    self:setHP(25)
+    self.area:addGameObject('InfoText', self.x, self.y, {text = 'HP Regain!', color = hp_color})
+  end
+  if self.chances.regain_full_ammo_on_cycle_chance:next() then
+    self.ammo = self.max_ammo
+    self.area:addGameObject('InfoText', self.x, self.y, {text = 'Max Ammo!', color = ammo_color})
+  end
+  if self.chances.change_attack_on_cycle_chance:next() then
+    -- self.ammo = self.max_ammo
+    self.attack = table.random({'Double', 'Triple', 'Rapid', 'Spread', 'Back', 'Side', 'Homing'})
+    self.area:addGameObject('InfoText', self.x, self.y, {text = self.attack .. '!'})
+  end
+  if self.chances.spawn_haste_area_on_cycle_chance:next() then
+    self.area:addGameObject('HasteArea', self.x, self.y)
+    self.area:addGameObject('InfoText', self.x, self.y, {text = 'Haste Area!'})
+  end
+  if self.chances.barrage_on_cycle_chance:next() then
+    for i = 1, 8 do
+      self.timer:after((i - 1) * 0.05, function()
+        local random_angle = random(-math.pi / 8, math.pi / 8)
+        local d = 2.2 * self.w
+        self.area:addGameObject('Projectile',
+          self.x + d * math.cos(self.r + random_angle),
+          self.y + d * math.sin(self.r + random_angle),
+          {r = self.r + random_angle, attack = self.attack})
+      end)
+    end
+    self.area:addGameObject('InfoText', self.x, self.y, {text = 'Barrage!'})
+  end
+  if self.chances.launch_homing_projectile_on_cycle_chance:next() then
+    local d = 1.2 * self.w
+    self.area:addGameObject('Projectile',
+      self.x + d * math.cos(self.r), self.y + d * math.sin(self.r),
+      {r = self.r, attack = 'Homing'})
+    self.area:addGameObject('InfoText', self.x, self.y, {text = 'Homing Projectile!'})
+  end
 end
 
 function Player:onSPPickup()
@@ -452,6 +504,25 @@ function Player:onKill()
       end)
     end
     self.area:addGameObject('InfoText', self.x, self.y, {text = 'Barrage!'})
+  end
+  if self.chances.regain_ammo_on_kill_chance:next() then
+    self:addAmmo(20)
+    self.area:addGameObject('InfoText', self.x, self.y, {text = 'Ammo Regain!', color = ammo_color})
+  end
+  if self.chances.launch_homing_projectile_on_kill_chance:next() then
+    local d = 1.2 * self.w
+    self.area:addGameObject('Projectile',
+      self.x + d * math.cos(self.r), self.y + d * math.sin(self.r),
+      {r = self.r, attack = 'Homing'})
+    self.area:addGameObject('InfoText', self.x, self.y, {text = 'Homing Projectile!'})
+  end
+  if self.chances.regain_boost_on_kill_chance:next() then
+    self.boost = math.min(self.boost + 40, self.max_boost)
+    self.area:addGameObject('InfoText', self.x, self.y, {text = 'Boost Regain!', color = boost_color})
+  end
+  if self.chances.spawn_boost_on_kill_chance:next() then
+    self.area:addGameObject('Boost')
+    self.area:addGameObject('InfoText', self.x, self.y, {text = 'Boost Spawn!', color = boost_color})
   end
 end
 

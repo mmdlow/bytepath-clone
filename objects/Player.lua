@@ -141,6 +141,7 @@ function Player:new(area, x, y, opts)
   self.hp_multiplier = 1
   self.ammo_multiplier = 1
   self.boost_multiplier = 1
+  self.aspd_multiplier = 1
 
   -- flats
   self.flat_hp = 0
@@ -151,6 +152,8 @@ function Player:new(area, x, y, opts)
   self.launch_homing_projectile_on_ammo_pickup_chance = 0
   self.regain_hp_on_ammo_pickup_chance = 0
   self.regain_hp_on_sp_pickup_chance = 0
+  self.spawn_haste_area_on_hp_pickup_chance = 0
+  self.spawn_haste_area_on_sp_pickup_chance = 90
 
   self:setStats()
   self:setChances()
@@ -180,9 +183,9 @@ function Player:update(dt)
   if input:down('left') then self.r = self.r - self.rv * dt end
   if input:down('right') then self.r = self.r + self.rv * dt end
 
-  -- attack management
+  -- shooting management
   self.shoot_timer = self.shoot_timer + dt
-  if self.shoot_timer > self.shoot_cooldown then
+  if self.shoot_timer > self.shoot_cooldown * self.aspd_multiplier then
     self.shoot_timer = 0
     self:shoot()
   end
@@ -195,17 +198,22 @@ function Player:update(dt)
       object:die()
       self:addAmmo(5)
       self:onAmmoPickup()
+
     elseif object:is(HP) then
       object:die()
       self:setHP(25)
+      self:onHPPickup()
+
     elseif object:is(SP) then
       object:die()
       skill_points = skill_points + 1
       current_room.score = current_room.score + 250
       self:onSPPickup()
+
     elseif object:is(Boost) then
       self:addBoost(25)
       object:die()
+
     elseif object:is(Attack) then
       object:die()
       self:setAttack(object.attack)
@@ -373,6 +381,10 @@ function Player:onSPPickup()
     self:setHP(25)
     self.area:addGameObject('InfoText', self.x, self.y, {text = 'HP Regain!', color = hp_color})
   end
+  if self.chances.spawn_haste_area_on_sp_pickup_chance:next() then
+    self.area:addGameObject('HasteArea', self.x, self.y)
+    self.area:addGameObject('InfoText', self.x, self.y, {text = 'Haste Area!'})
+  end
 end
 
 function Player:addAmmo(amount)
@@ -405,10 +417,29 @@ function Player:setHP(amount)
   if self.hp <= 0 then self:die() end
 end
 
+function Player:onHPPickup()
+  if self.chances.spawn_haste_area_on_hp_pickup_chance:next() then
+    self.area:addGameObject('HasteArea', self.x, self.y)
+    self.area:addGameObject('InfoText', self.x, self.y, {text = 'Haste Area!'})
+  end
+end
+
 function Player:setAttack(attack)
   self.attack = attack
   self.shoot_cooldown = attacks[attack].cooldown
   self.ammo = self.max_ammo
+end
+
+function Player:enterHasteArea()
+  self.inside_haste_area = true
+  self.pre_haste_aspd_multiplier = self.aspd_multiplier
+  self.aspd_multiplier = self.aspd_multiplier / 2
+end
+
+function Player:exitHasteArea()
+  self.inside_haste_area = false
+  self.aspd_multiplier = self.pre_haste_aspd_multiplier
+  self.pre_haste_aspd_multiplier = nil
 end
 
 function Player:hit(damage)

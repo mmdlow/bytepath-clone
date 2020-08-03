@@ -46,7 +46,7 @@ function Area:getGameObjects(filter)
   local out = {}
   for _, game_object in ipairs(self.game_objects) do
     if filter(game_object) then
-      table.insert(game_object)
+      table.insert(out, game_object)
     end
   end
   return out

@@ -136,6 +136,27 @@ function Player:new(area, x, y, opts)
   self:setAttack('Neutral')
   self.shoot_timer = 0
   self.shoot_cooldown = attacks[self.attack].cooldown
+
+  -- multipliers
+  self.hp_multiplier = 1
+  self.ammo_multiplier = 1
+  self.boost_multiplier = 1
+
+  -- flats
+  self.flat_hp = 0
+  self.flat_boost = 0
+  self.ammo_gain = 0
+
+  self:setStats()
+end
+
+function Player:setStats()
+  self.max_hp = (self.max_hp + self.flat_hp) * self.hp_multiplier
+  self.max_ammo = self.max_ammo * self.ammo_multiplier
+  self.max_boost = (self.max_boost + self.flat_boost)* self.boost_multiplier
+  self.hp = self.max_hp
+  self.ammo = self.max_ammo
+  self.boost = self.max_boost
 end
 
 function Player:update(dt)
@@ -312,6 +333,10 @@ function Player:shoot()
       self.x + 1.5 * d * math.cos(self.r - math.pi / 2),
       self.y + 1.5 * d * math.sin(self.r - math.pi / 2),
       {r = self.r - math.pi / 2, attack = self.attack})
+
+  elseif self.attack == 'Homing' then
+    self.area:addGameObject('Projectile', self.x + 1.5 * d * math.cos(self.r),
+      self.y + 1.5 * d * math.sin(self.r), {r = self.r, attack = self.attack})
   
   end
 
@@ -327,7 +352,7 @@ function Player:cycle()
 end
 
 function Player:addAmmo(amount)
-  self.ammo = math.min(self.ammo + amount, self.max_ammo)
+  self.ammo = math.min(self.ammo + amount + self.ammo_gain, self.max_ammo)
   current_room.score = current_room.score + 50
 end
 

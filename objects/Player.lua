@@ -147,7 +147,11 @@ function Player:new(area, x, y, opts)
   self.flat_boost = 0
   self.ammo_gain = 0
 
+  -- chances
+  self.launch_homing_projectile_on_ammo_pickup_chance = 0
+
   self:setStats()
+  self:setChances()
 end
 
 function Player:setStats()
@@ -157,6 +161,15 @@ function Player:setStats()
   self.hp = self.max_hp
   self.ammo = self.max_ammo
   self.boost = self.max_boost
+end
+
+function Player:setChances()
+  self.chances = {}
+  for k, v in pairs(self) do
+    if k:find('_chance') and type(v) == 'number' then
+      self.chances[k] = chanceList({true, math.ceil(v)}, {false, 100 - math.ceil(v)})
+    end
+  end
 end
 
 function Player:update(dt)
@@ -179,6 +192,7 @@ function Player:update(dt)
     if object:is(Ammo) then
       object:die()
       self:addAmmo(5)
+      self:onAmmoPickup()
     elseif object:is(HP) then
       object:die()
       self:setHP(25)
@@ -354,6 +368,16 @@ end
 function Player:addAmmo(amount)
   self.ammo = math.min(self.ammo + amount + self.ammo_gain, self.max_ammo)
   current_room.score = current_room.score + 50
+end
+
+function Player:onAmmoPickup()
+  if self.chances.launch_homing_projectile_on_ammo_pickup_chance:next() then
+    local d = 1.2 * self.w
+    self.area:addGameObject('Projectile',
+      self.x + d * math.cos(self.r), self.y + d * math.sin(self.r),
+      {r = self.r, attack = 'Homing'})
+    self.area:addGameObject('InfoText', self.x, self.y, {text = 'Homing Projectile!'})
+  end
 end
 
 function Player:addBoost(amount)

@@ -156,6 +156,7 @@ function Player:new(area, x, y, opts)
   self.spawn_haste_area_on_hp_pickup_chance = 0
   self.spawn_haste_area_on_sp_pickup_chance = 0
   self.spawn_sp_on_cycle_chance = 0
+  self.barrage_on_kill_chance = 0
 
   self:setStats()
   self:setChances()
@@ -436,6 +437,22 @@ function Player:setAttack(attack)
   self.attack = attack
   self.shoot_cooldown = attacks[attack].cooldown
   self.ammo = self.max_ammo
+end
+
+function Player:onKill()
+  if self.chances.barrage_on_kill_chance:next() then
+    for i = 1, 8 do
+      self.timer:after((i - 1) * 0.05, function()
+        local random_angle = random(-math.pi / 8, math.pi / 8)
+        local d = 2.2 * self.w
+        self.area:addGameObject('Projectile',
+          self.x + d * math.cos(self.r + random_angle),
+          self.y + d * math.sin(self.r + random_angle),
+          {r = self.r + random_angle, attack = self.attack})
+      end)
+    end
+    self.area:addGameObject('InfoText', self.x, self.y, {text = 'Barrage!'})
+  end
 end
 
 function Player:enterHasteArea()

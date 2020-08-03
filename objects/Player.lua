@@ -149,6 +149,8 @@ function Player:new(area, x, y, opts)
 
   -- chances
   self.launch_homing_projectile_on_ammo_pickup_chance = 0
+  self.regain_hp_on_ammo_pickup_chance = 0
+  self.regain_hp_on_sp_pickup_chance = 0
 
   self:setStats()
   self:setChances()
@@ -200,6 +202,7 @@ function Player:update(dt)
       object:die()
       skill_points = skill_points + 1
       current_room.score = current_room.score + 250
+      self:onSPPickup()
     elseif object:is(Boost) then
       self:addBoost(25)
       object:die()
@@ -365,6 +368,13 @@ function Player:cycle()
   self.area:addGameObject('TickEffect', self.x, self.y, {parent = self})
 end
 
+function Player:onSPPickup()
+  if self.chances.regain_hp_on_sp_pickup_chance:next() then
+    self:setHP(25)
+    self.area:addGameObject('InfoText', self.x, self.y, {text = 'HP Regain!', color = hp_color})
+  end
+end
+
 function Player:addAmmo(amount)
   self.ammo = math.min(self.ammo + amount + self.ammo_gain, self.max_ammo)
   current_room.score = current_room.score + 50
@@ -377,6 +387,11 @@ function Player:onAmmoPickup()
       self.x + d * math.cos(self.r), self.y + d * math.sin(self.r),
       {r = self.r, attack = 'Homing'})
     self.area:addGameObject('InfoText', self.x, self.y, {text = 'Homing Projectile!'})
+  end
+
+  if self.chances.regain_hp_on_ammo_pickup_chance:next() then
+    self:setHP(25)
+    self.area:addGameObject('InfoText', self.x, self.y, {text = 'HP Regain!', color = hp_color})
   end
 end
 

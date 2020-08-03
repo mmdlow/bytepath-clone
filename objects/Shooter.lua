@@ -55,17 +55,18 @@ end
 function Shooter:hit(damage)
   local damage = damage or 100
   self.hp = self.hp - damage
-  if (self.hp <= 0) then
+  if self.hp <= 0 then
     self:die()
   else
     self.hit_flash = true
-    timer:after(0.2, function() self.hit_flash = false end)
+    timer:after('hit_flash', 0.2, function() self.hit_flash = false end)
   end
 end
 
 function Shooter:die()
   current_room.score = current_room.score + 150
   self.dead = true
+  self.area:addGameObject('Ammo', self.x, self.y)
   self.area:addGameObject('EnemyDeathEffect', self.x, self.y,
     {color = hp_color, w = 2.5 * self.w, h = 2.5 * self.h})
 end

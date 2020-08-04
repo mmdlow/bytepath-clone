@@ -145,6 +145,7 @@ function Player:new(area, x, y, opts)
   self.aspd_multiplier = Stat(1)
   self.mvspd_multiplier = Stat(1)
   self.pspd_multiplier = Stat(1)
+  self.cycle_speed_multiplier = Stat(1)
 
   -- flats
   self.flat_hp = 0
@@ -180,6 +181,9 @@ function Player:new(area, x, y, opts)
   self.on_kill_gain_aspd_boost_chance = 0
 
   self.while_boosting_launch_homing_projectile_chance = 0
+
+  --booleans
+  self.while_boosting_increased_cycle_speed_chance = true
 
   self:setStats()
   self:setChances()
@@ -218,6 +222,9 @@ function Player:update(dt)
   if self.pspd_inhibiting then self.pspd_multiplier:decrease(50) end
   ---- assume these 2 will never ocur simultaneously
   self.pspd_multiplier:update(dt)
+
+  if self.cycle_boosting then self.cycle_speed_multiplier:increase(200) end
+  self.cycle_speed_multiplier:update(dt)
 
   -- movement
   if input:down('left') then self.r = self.r - self.rv * dt end
@@ -261,7 +268,7 @@ function Player:update(dt)
   end
 
   -- cycle management
-  self.cycle_timer = self.cycle_timer + dt
+  self.cycle_timer = self.cycle_timer + dt * self.cycle_speed_multiplier.value
   if self.cycle_timer > self.cycle_cooldown then
     self.cycle_timer = 0
     self:cycle()
@@ -530,10 +537,19 @@ function Player:onBoostStart()
       self.area:addGameObject('InfoText', self.x, self.y, {text = 'Homing Projectile!'})
     end
   end)
+  if self.while_boosting_increased_cycle_speed_chance then
+    self.cycle_boosting = true
+    self.area:addGameObject('InfoText', self.x, self.y, {text = 'Cycle Speed Increased!'})
+  end
 end
 
 function Player:onBoostEnd()
   self.timer:cancel('while_boosting_launch_homing_projectile_chance')
+
+  if self.while_boosting_increased_cycle_speed_chance then
+    self.cycle_speed_multiplier:decrease(50)
+    self.cycle_boosting = false
+  end
 end
 
 function Player:setHP(amount)

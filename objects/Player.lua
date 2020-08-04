@@ -183,7 +183,8 @@ function Player:new(area, x, y, opts)
   self.while_boosting_launch_homing_projectile_chance = 0
 
   --booleans
-  self.while_boosting_increased_cycle_speed_chance = true
+  self.while_boosting_increased_cycle_speed_chance = false
+  self.while_boosting_invulnerability = false
 
   self:setStats()
   self:setChances()
@@ -541,6 +542,10 @@ function Player:onBoostStart()
     self.cycle_boosting = true
     self.area:addGameObject('InfoText', self.x, self.y, {text = 'Cycle Speed Increased!'})
   end
+  if self.while_boosting_invulnerability then
+    self.invincible = true
+    self.area:addGameObject('InfoText', self.x, self.y, {text = 'Invulnerable!'})
+  end
 end
 
 function Player:onBoostEnd()
@@ -549,6 +554,9 @@ function Player:onBoostEnd()
   if self.while_boosting_increased_cycle_speed_chance then
     self.cycle_speed_multiplier:decrease(50)
     self.cycle_boosting = false
+  end
+  if self.while_boosting_invulnerability then
+    self.invincible = false
   end
 end
 

@@ -142,9 +142,8 @@ function Player:new(area, x, y, opts)
   self.hp_multiplier = 1
   self.ammo_multiplier = 1
   self.boost_multiplier = 1
-  self.base_aspd_multiplier = 1
   self.aspd_multiplier = Stat(1)
-  self.additional_aspd_multiplier = {}
+  self.mvspd_multiplier = Stat(1)
 
   -- flats
   self.flat_hp = 0
@@ -162,12 +161,13 @@ function Player:new(area, x, y, opts)
 
   self.on_cycle_regain_hp_chance = 0
   self.on_cycle_regain_full_ammo_chance = 0
-  self.on_cycle_spawn_haste_area_chance = 100
+  self.on_cycle_spawn_haste_area_chance = 0
   self.on_cycle_spawn_sp_chance = 0
   self.on_cycle_spawn_hp_chance = 0
   self.on_cycle_change_attack_chance = 0
   self.on_cycle_barrage_chance = 0
   self.on_cycle_launch_homing_projectile_chance = 0
+  self.on_cycle_mvspd_boost_chance = 0
 
   self.on_kill_barrage_chance = 0
   self.on_kill_regain_ammo_chance = 0
@@ -205,6 +205,9 @@ function Player:update(dt)
   if self.inside_haste_area then self.aspd_multiplier:increase(100) end
   if self.aspd_boosting then self.aspd_multiplier:increase(100) end
   self.aspd_multiplier:update(dt)
+
+  if self.mvspd_boosting then self.mvspd_multiplier:increase(50) end
+  self.mvspd_multiplier:update(dt)
 
   -- movement
   if input:down('left') then self.r = self.r - self.rv * dt end
@@ -255,7 +258,7 @@ function Player:update(dt)
   end
   
   -- boost management
-  self.max_v = self.base_max_v
+  self.max_v = self.base_max_v * self.mvspd_multiplier.value
   self.boost = math.min(self.boost + 10 * dt, self.max_boost)
   self.boost_timer = self.boost_timer + dt
   if self.boost_timer > self.boost_cooldown then self.can_boost = true end
@@ -263,7 +266,7 @@ function Player:update(dt)
 
   if input:down('up') and self.boost > 1 and self.can_boost then
     self.boosting = true
-    self.max_v = 1.5 * self.base_max_v
+    self.max_v = 1.5 * self.base_max_v * self.mvspd_multiplier.value
     self.boost = self.boost - 50 * dt
     if self.boost <= 1 then
       self.boosting = false
@@ -447,6 +450,11 @@ function Player:onCycle()
       self.x + d * math.cos(self.r), self.y + d * math.sin(self.r),
       {r = self.r, attack = 'Homing'})
     self.area:addGameObject('InfoText', self.x, self.y, {text = 'Homing Projectile!'})
+  end
+  if self.chances.on_cycle_mvspd_boost_chance:next() then
+    self.mvspd_boosting = true
+    self.timer:after(4, function() self.mvspd_boosting = false end)
+    self.area:addGameObject('InfoText', self.x, self.y, {text = 'MVSPD Boost!', color = boost_color})
   end
 end
 

@@ -5,6 +5,7 @@ function Projectile:new(area, x, y, opts)
 
   self.s = opts.s or 2.5 -- collider radius
   self.v = opts.v or 200 -- collider velocity
+  self.base_v = self.v
 
   self.collider = self.area.world:newCircleCollider(self.x, self.y, self.s)
   self.collider:setObject(self)
@@ -25,6 +26,8 @@ function Projectile:new(area, x, y, opts)
 end
 
 function Projectile:update(dt)
+  self.v = self.base_v * current_room.player.pspd_multiplier.value
+
   if self.collider:enter('Enemy') then
     local collision_data = self.collider:getEnterCollisionData('Enemy')
     local object = collision_data.collider:getObject()

@@ -144,6 +144,7 @@ function Player:new(area, x, y, opts)
   self.boost_multiplier = 1
   self.aspd_multiplier = Stat(1)
   self.mvspd_multiplier = Stat(1)
+  self.pspd_multiplier = Stat(1)
 
   -- flats
   self.flat_hp = 0
@@ -168,6 +169,8 @@ function Player:new(area, x, y, opts)
   self.on_cycle_barrage_chance = 0
   self.on_cycle_launch_homing_projectile_chance = 0
   self.on_cycle_mvspd_boost_chance = 0
+  self.on_cycle_pspd_boost_chance = 0
+  self.on_cycle_pspd_inhibit_chance = 0
 
   self.on_kill_barrage_chance = 0
   self.on_kill_regain_ammo_chance = 0
@@ -208,6 +211,11 @@ function Player:update(dt)
 
   if self.mvspd_boosting then self.mvspd_multiplier:increase(50) end
   self.mvspd_multiplier:update(dt)
+
+  if self.pspd_boosting then self.pspd_multiplier:increase(100) end
+  if self.pspd_inhibiting then self.pspd_multiplier:decrease(50) end
+  ---- assume these 2 will never ocur simultaneously
+  self.pspd_multiplier:update(dt)
 
   -- movement
   if input:down('left') then self.r = self.r - self.rv * dt end
@@ -456,6 +464,16 @@ function Player:onCycle()
     self.timer:after(4, function() self.mvspd_boosting = false end)
     self.area:addGameObject('InfoText', self.x, self.y, {text = 'MVSPD Boost!', color = boost_color})
   end
+  if self.chances.on_cycle_pspd_boost_chance:next() then
+    self.pspd_boosting = true
+    self.timer:after(4, function() self.pspd_boosting = false end)
+    self.area:addGameObject('InfoText', self.x, self.y, {text = 'PSPD Boost!'})
+  end
+  if self.chances.on_cycle_pspd_inhibit_chance:next() then
+    self.pspd_inhibiting = true
+    self.timer:after(4, function() self.pspd_inhibiting = false end)
+    self.area:addGameObject('InfoText', self.x, self.y, {text = 'PSPD Inhibit!'})
+  end -- assume this will never happen with 'boost pspd' simultaneously
 end
 
 function Player:onSPPickup()

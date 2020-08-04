@@ -142,6 +142,7 @@ function Player:new(area, x, y, opts)
   self.hp_multiplier = 1
   self.ammo_multiplier = 1
   self.boost_multiplier = 1
+  self.luck_multiplier = 1
   self.aspd_multiplier = Stat(1)
   self.mvspd_multiplier = Stat(1)
   self.pspd_multiplier = Stat(1)
@@ -184,6 +185,7 @@ function Player:new(area, x, y, opts)
 
   --booleans
   self.while_boosting_increased_cycle_speed_chance = false
+  self.while_boosting_increased_luck = true
   self.while_boosting_invulnerability = false
 
   self:setStats()
@@ -203,7 +205,9 @@ function Player:setChances()
   self.chances = {}
   for k, v in pairs(self) do
     if k:find('_chance') and type(v) == 'number' then
-      self.chances[k] = chanceList({true, math.ceil(v)}, {false, 100 - math.ceil(v)})
+      self.chances[k] = chanceList(
+        {true, math.ceil(v * self.luck_multiplier)},
+        {false, 100 - math.ceil(v * self.luck_multiplier)})
     end
   end
 end
@@ -546,17 +550,27 @@ function Player:onBoostStart()
     self.invincible = true
     self.area:addGameObject('InfoText', self.x, self.y, {text = 'Invulnerable!'})
   end
+  if self.while_boosting_increased_luck then
+    self.luck_boosting = true
+    self.luck_multiplier = self.luck_multiplier * 2
+    self:setChances()
+  end
 end
 
 function Player:onBoostEnd()
   self.timer:cancel('while_boosting_launch_homing_projectile_chance')
 
-  if self.while_boosting_increased_cycle_speed_chance then
+  if self.while_boosting_increased_cycle_speed_chance and self.cycle_boosting then
     self.cycle_speed_multiplier:decrease(50)
     self.cycle_boosting = false
   end
   if self.while_boosting_invulnerability then
     self.invincible = false
+  end
+  if self.while_boosting_increased_luck and self.luck_boosting then
+    self.luck_boosting = false
+    self.luck_multiplier = self.luck_multiplier / 2
+    self:setChances()
   end
 end
 

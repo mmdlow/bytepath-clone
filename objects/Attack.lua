@@ -6,7 +6,7 @@ function Attack:new(area, x, y, opts)
   self.y = random(16, gh - 16)
   self.w, self.h = 10, 10
   self.font = fonts.m5x7_16
-  self.attack = table.random({'Double', 'Triple', 'Rapid', 'Spread', 'Back', 'Side'})
+  self.attack = table.random({'Double', 'Triple', 'Rapid', 'Spread', 'Back', 'Side', 'Homing'})
 end
 
 function Attack:draw()

@@ -142,7 +142,9 @@ function Player:new(area, x, y, opts)
   self.hp_multiplier = 1
   self.ammo_multiplier = 1
   self.boost_multiplier = 1
-  self.aspd_multiplier = 1
+  self.base_aspd_multiplier = 1
+  self.aspd_multiplier = Stat(1)
+  self.additional_aspd_multiplier = {}
 
   -- flats
   self.flat_hp = 0
@@ -160,7 +162,7 @@ function Player:new(area, x, y, opts)
 
   self.on_cycle_regain_hp_chance = 0
   self.on_cycle_regain_full_ammo_chance = 0
-  self.on_cycle_spawn_haste_area_chance = 0
+  self.on_cycle_spawn_haste_area_chance = 100
   self.on_cycle_spawn_sp_chance = 0
   self.on_cycle_spawn_hp_chance = 0
   self.on_cycle_change_attack_chance = 0
@@ -172,6 +174,7 @@ function Player:new(area, x, y, opts)
   self.on_kill_launch_homing_projectile_chance = 0
   self.on_kill_regain_boost_chance = 0
   self.on_kill_spawn_boost_chance = 0
+  self.on_kill_gain_aspd_boost_chance = 0
 
   self:setStats()
   self:setChances()
@@ -198,15 +201,18 @@ end
 function Player:update(dt)
   Player.super.update(self, dt)
 
+  -- stat multiplier management
+  if self.inside_haste_area then self.aspd_multiplier:increase(100) end
+  if self.aspd_boosting then self.aspd_multiplier:increase(100) end
+  self.aspd_multiplier:update(dt)
+
+  -- movement
   if input:down('left') then self.r = self.r - self.rv * dt end
   if input:down('right') then self.r = self.r + self.rv * dt end
 
-  -- shooting management
-  self.shoot_timer = self.shoot_timer + dt
-  if self.shoot_timer > self.shoot_cooldown * self.aspd_multiplier then
-    self.shoot_timer = 0
-    self:shoot()
-  end
+  -- velocity management
+  self.v = math.min(self.v + self.a * dt, self.max_v)
+  self.collider:setLinearVelocity(self.v * math.cos(self.r), self.v * math.sin(self.r))
 
   -- collectable behavior
   if self.collider:enter('Collectable') then
@@ -279,14 +285,17 @@ function Player:update(dt)
   self.trail_color = skill_point_color
   if self.boosting then self.trail_color = boost_color end
 
-  -- velocity management
-  self.v = math.min(self.v + self.a * dt, self.max_v)
-  self.collider:setLinearVelocity(self.v * math.cos(self.r), self.v * math.sin(self.r))
-
   -- death if player hits the edges
   if self.x < 0 or self.y < 0 or self.x > gw or self.y > gh then
     self.hp = 0
     self:die()
+  end
+
+  -- shooting management
+  self.shoot_timer = self.shoot_timer + dt
+  if self.shoot_timer > self.shoot_cooldown / self.aspd_multiplier.value then
+    self.shoot_timer = 0
+    self:shoot()
   end
 end
 
@@ -528,18 +537,11 @@ function Player:onKill()
     self.area:addGameObject('Boost')
     self.area:addGameObject('InfoText', self.x, self.y, {text = 'Boost Spawn!', color = boost_color})
   end
-end
-
-function Player:enterHasteArea()
-  self.inside_haste_area = true
-  self.pre_haste_aspd_multiplier = self.aspd_multiplier
-  self.aspd_multiplier = self.aspd_multiplier / 2
-end
-
-function Player:exitHasteArea()
-  self.inside_haste_area = false
-  self.aspd_multiplier = self.pre_haste_aspd_multiplier
-  self.pre_haste_aspd_multiplier = nil
+  if self.chances.on_kill_gain_aspd_boost_chance:next() then
+    self.aspd_boosting = true
+    self.timer:after(4, function() self.aspd_boosting = false end)
+    self.area:addGameObject('InfoText', self.x, self.y, {text = 'ASPD Boost!', color = ammo_color})
+  end
 end
 
 function Player:hit(damage)

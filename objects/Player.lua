@@ -179,6 +179,8 @@ function Player:new(area, x, y, opts)
   self.on_kill_spawn_boost_chance = 0
   self.on_kill_gain_aspd_boost_chance = 0
 
+  self.while_boosting_launch_homing_projectile_chance = 0
+
   self:setStats()
   self:setChances()
 end
@@ -272,6 +274,8 @@ function Player:update(dt)
   if self.boost_timer > self.boost_cooldown then self.can_boost = true end
   self.boosting = false
 
+  if input:pressed('up') and self.boost > 1 and self.can_boost then self:onBoostStart() end
+  if input:released('up') then self:onBoostEnd() end
   if input:down('up') and self.boost > 1 and self.can_boost then
     self.boosting = true
     self.max_v = 1.5 * self.base_max_v * self.mvspd_multiplier.value
@@ -280,8 +284,11 @@ function Player:update(dt)
       self.boosting = false
       self.can_boost = false
       self.boost_timer = 0
+      self:onBoostEnd()
     end
   end
+  if input:pressed('down') and self.boost > 1 and self.can_boost then self:onBoostStart() end
+  if input:released('down') then self:onBoostEnd() end
   if input:down('down') and self.boost > 1 and self.can_boost then
     self.boosting = true
     self.max_v = 0.5 * self.base_max_v
@@ -290,6 +297,7 @@ function Player:update(dt)
       self.boosting = false
       self.can_boost = false
       self.boost_timer = 0
+      self:onBoostEnd()
     end
   end
 
@@ -510,6 +518,22 @@ end
 function Player:addBoost(amount)
   self.boost = math.min(self.boost + amount, self.max_boost)
   current_room.score = current_room.score + 150
+end
+
+function Player:onBoostStart()
+  self.timer:every('while_boosting_launch_homing_projectile_chance', 0.2, function()
+    if self.chances.while_boosting_launch_homing_projectile_chance:next() then
+      local d = 1.2 * self.w
+      self.area:addGameObject('Projectile',
+        self.x + d * math.cos(self.r), self.y + d * math.sin(self.r),
+        {r = self.r, attack = 'Homing'})
+      self.area:addGameObject('InfoText', self.x, self.y, {text = 'Homing Projectile!'})
+    end
+  end)
+end
+
+function Player:onBoostEnd()
+  self.timer:cancel('while_boosting_launch_homing_projectile_chance')
 end
 
 function Player:setHP(amount)

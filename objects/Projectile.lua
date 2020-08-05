@@ -3,8 +3,8 @@ Projectile = GameObject:extend()
 function Projectile:new(area, x, y, opts)
   Projectile.super.new(self, area, x, y, opts)
 
-  self.s = opts.s or 2.5 -- collider radius
-  self.v = opts.v or 200 -- collider velocity
+  self.s = (opts.s or 2.5) * current_room.player.projectile_size_multiplier -- collider radius
+  self.v = (opts.v or 200) * current_room.player.pspd_multiplier.value -- collider velocity
   self.base_s = self.s
   self.base_v = self.v
 
@@ -63,12 +63,23 @@ function Projectile:new(area, x, y, opts)
         end)
     end)
   end
+
+  if current_room.player.fast_slow then
+    local initial_v = self.v
+    self.timer:tween('fast_slow_first', 0.2, self, {v = 2 * initial_v * current_room.player.projectile_acceleration_multiplier}, 'in-out-cubic', function()
+      self.timer:tween('fast_slow_second', 0.3, self, {v = initial_v * current_room.player.projectile_acceleration_multiplier/ 2}, 'linear')
+    end)
+  end
+
+  if current_room.player.slow_fast then
+    local initial_v = self.v
+    self.timer:tween('slow_fast_first', 0.2, self, {v = initial_v * current_room.player.projectile_deceleration_multiplier / 2}, 'in-out-cubic', function()
+      self.timer:tween('slow_fast_second', 0.3, self, {v = initial_v * current_room.player.projectile_deceleration_multiplier * 2}, 'linear')
+    end)
+  end
 end
 
 function Projectile:update(dt)
-  self.v = self.base_v * current_room.player.pspd_multiplier.value
-  self.s = self.base_s * current_room.player.projectile_size_multiplier
-
   if self.collider:enter('Enemy') then
     local collision_data = self.collider:getEnterCollisionData('Enemy')
     local object = collision_data.collider:getObject()

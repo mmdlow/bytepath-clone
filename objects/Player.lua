@@ -143,6 +143,9 @@ function Player:new(area, x, y, opts)
   self.ammo_multiplier = 1
   self.boost_multiplier = 1
   self.luck_multiplier = 1
+  self.spawn_hp_chance_multiplier = 1
+  self.spawn_boost_chance_multiplier = 1
+  self.spawn_sp_chance_multiplier = 1
   self.aspd_multiplier = Stat(1)
   self.mvspd_multiplier = Stat(1)
   self.pspd_multiplier = Stat(1)

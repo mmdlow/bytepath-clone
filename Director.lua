@@ -20,7 +20,11 @@ function Director:new(stage)
     ['Shooter'] = 2
   }
 
-  self.resource_spawn_chances = chanceList({'Boost', 28}, {'HP', 14}, {'SP', 58})
+  self.resource_spawn_chances = chanceList(
+    {'Boost', 28 * current_room.player.spawn_sp_chance_multiplier},
+    {'HP', 14 * current_room.player.spawn_hp_chance_multiplier},
+    {'SP', 58 * current_room.player.spawn_boost_chance_multiplier}
+  )
 
   self.enemy_spawn_chances = {
     [1] = chanceList({'Rock', 1}),

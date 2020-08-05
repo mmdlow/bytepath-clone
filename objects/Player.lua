@@ -92,6 +92,7 @@ function Player:new(area, x, y, opts)
   self.size_multiplier = 1
   self.stat_boost_duration_multiplier = 1
   self.angle_change_frequency_multiplier = 1
+  self.projectile_waviness_multiplier = 1
 
   self.aspd_multiplier = Stat(1)
   self.mvspd_multiplier = Stat(1)
@@ -145,6 +146,7 @@ function Player:new(area, x, y, opts)
   self.while_boosting_invulnerability = false
   self.projectile_ninety_degree_change = false
   self.projectile_random_degree_change = false
+  self.wavy_projectiles = false
 
   -- ship design polygon points
   self.w = self.base_w * self.size_multiplier

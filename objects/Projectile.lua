@@ -47,6 +47,22 @@ function Projectile:new(area, x, y, opts)
       end)
     end)
   end
+
+  if current_room.player.wavy_projectiles then
+    local direction = table.random({-1, 1}) * current_room.player.projectile_waviness_multiplier
+    self.timer:tween(0.25 / current_room.player.angle_change_frequency_multiplier,
+      self, {r = self.r + direction * math.pi / 8}, 'linear',
+      function()
+        self.timer:tween(0.25, self, {r = self.r - direction * math.pi / 4}, 'linear')
+      end)
+    self.timer:every(0.75 / current_room.player.angle_change_frequency_multiplier, function()
+      self.timer:tween(0.25 / current_room.player.angle_change_frequency_multiplier,
+        self, {r = self.r + direction * math.pi / 4}, 'linear',
+        function()
+          self.timer:tween(0.25, self, {r = self.r - direction * math.pi / 4}, 'linear')
+        end)
+    end)
+  end
 end
 
 function Projectile:update(dt)

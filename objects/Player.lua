@@ -186,6 +186,12 @@ function Player:new(area, x, y, opts)
 
   self.while_boosting_launch_homing_projectile_chance = 0
 
+  self.drop_double_ammo_chance = 0
+  self.attack_twice_chance = 0
+  self.spawn_double_hp_chance = 0
+  self.spawn_double_sp_chance = 0
+  self.gain_double_sp_chance = 0
+
   --booleans
   self.while_boosting_increased_cycle_speed_chance = false
   self.while_boosting_increased_luck = true
@@ -258,7 +264,8 @@ function Player:update(dt)
 
     elseif object:is(SP) then
       object:die()
-      skill_points = skill_points + 1
+      local increment = self.chances.gain_double_sp_chance:next() and 2 or 1
+      skill_points = skill_points + increment
       current_room.score = current_room.score + 250
       self:onSPPickup()
 
@@ -422,6 +429,12 @@ function Player:shoot()
     self.area:addGameObject('Projectile', self.x + 1.5 * d * math.cos(self.r),
       self.y + 1.5 * d * math.sin(self.r), {r = self.r, attack = self.attack})
   
+  end
+
+  if self.chances.attack_twice_chance:next() then
+    self.timer:after(self.shoot_cooldown / 2, function() 
+      self:shoot()
+    end)
   end
 
   -- revert to Neutral attack if out of ammo
@@ -595,7 +608,7 @@ function Player:setAttack(attack)
   self.ammo = self.max_ammo
 end
 
-function Player:onKill()
+function Player:onKill(enemy)
   if self.chances.on_kill_barrage_chance:next() then
     for i = 1, 8 do
       self.timer:after((i - 1) * 0.05, function()
@@ -632,6 +645,10 @@ function Player:onKill()
     self.aspd_boosting = true
     self.timer:after(4, function() self.aspd_boosting = false end)
     self.area:addGameObject('InfoText', self.x, self.y, {text = 'ASPD Boost!', color = ammo_color})
+  end
+  if self.chances.drop_double_ammo_chance:next() then
+    self.area:addGameObject('Ammo', enemy.x, enemy.y)
+    self.area:addGameObject('InfoText', self.x, self.y, {text = 'Double Ammo!', color = ammo_color})
   end
 end
 

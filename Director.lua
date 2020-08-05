@@ -21,9 +21,9 @@ function Director:new(stage)
   }
 
   self.resource_spawn_chances = chanceList(
-    {'Boost', 28 * current_room.player.spawn_sp_chance_multiplier},
-    {'HP', 14 * current_room.player.spawn_hp_chance_multiplier},
-    {'SP', 58 * current_room.player.spawn_boost_chance_multiplier}
+    {'Boost', 28 * self.stage.player.spawn_sp_chance_multiplier},
+    {'HP', 14 * self.stage.player.spawn_hp_chance_multiplier},
+    {'SP', 58 * self.stage.player.spawn_boost_chance_multiplier}
   )
 
   self.enemy_spawn_chances = {
@@ -83,6 +83,10 @@ function Director:setResourceSpawns()
   self.timer:every(16, function()
     local resource = self.resource_spawn_chances:next()
     self.stage.area:addGameObject(resource)
+    if (self.stage.player.chances.spawn_double_hp_chance:next() and resource == 'HP')
+    or (self.stage.player.chances.spawn_double_sp_chance:next() and resource == 'SP') then
+      self.stage.area:addGameObject(resource)
+    end
   end)
 end
 

@@ -23,6 +23,13 @@ function Projectile:new(area, x, y, opts)
       self.area:addGameObject('TrailParticle', self.x - self.s * math.cos(r), self.y - self.s * math.sin(r),
         {parent = self, r = random(1, 3), d = random(0.1, 0.2), color = skill_point_color})
     end)
+
+  elseif self.attack == 'Blast' then
+    self.damage = 75
+    self.color = table.random(negative_colors)
+    if not self.shield then
+      self.timer:tween(random(0.4, 0.6), self, {v = 0}, 'linear', function() self:die() end)
+    end
   end
 
   if current_room.player.projectile_ninety_degree_change then

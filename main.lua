@@ -38,8 +38,8 @@ function love.load()
   input = Input()
   draft = Draft()
 
-  local default_colors = {default_color, hp_color, ammo_color, boost_color, skill_point_color}
-  local negative_colors = getNegativeColors(default_colors)
+  default_colors = {default_color, hp_color, ammo_color, boost_color, skill_point_color}
+  negative_colors = getNegativeColors(default_colors)
   all_colors = fn.append(default_colors, negative_colors)
 
   slow_amount = 1

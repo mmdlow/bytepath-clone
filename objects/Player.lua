@@ -409,6 +409,7 @@ function Player:shoot()
     shield = self.chances.shield_projectile_chance:next()
   }
 
+  -- TODO: integrate merging of mods table with opts table for all attacks
   if self.attack == 'Neutral' then
     self.area:addGameObject('Projectile', self.x + 1.5 * d * math.cos(self.r),
       self.y + 1.5 * d * math.sin(self.r), table.merge({r = self.r, attack = self.attack}, mods))
@@ -469,6 +470,15 @@ function Player:shoot()
     self.area:addGameObject('Projectile', self.x + 1.5 * d * math.cos(self.r),
       self.y + 1.5 * d * math.sin(self.r), {r = self.r, attack = self.attack})
   
+  elseif self.attack == 'Blast' then
+    for i = 1, 12 do
+      local random_angle = random(-math.pi / 6, math.pi / 6)
+      self.area:addGameObject('Projectile',
+        self.x + 1.5 * d * math.cos(self.r + random_angle),
+        self.y + 1.5 * d * math.sin(self.r + random_angle),
+        table.merge({r = self.r + random_angle, attack = self.attack, v = random(500, 600)}, mods))
+    end
+    camera:shake(4, 60, 0.4)
   end
 
   if self.chances.attack_twice_chance:next() then

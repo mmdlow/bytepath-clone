@@ -45,8 +45,10 @@ end
 
 function Director:update(dt)
   if self.timer then self.timer:update(dt) end
+
+  -- Difficulty
   self.round_timer = self.round_timer + dt
-  if self.round_timer > self.round_duration then
+  if self.round_timer > self.round_duration / self.stage.player.enemy_spawn_rate_multiplier then
     self.round_timer = 0
     self.difficulty = self.difficulty + 1
     self:setEnemySpawnsForThisRound()
@@ -80,7 +82,7 @@ function Director:setEnemySpawnsForThisRound()
 end
 
 function Director:setResourceSpawns()
-  self.timer:every(16, function()
+  self.timer:every(16 / self.stage.player.resource_spawn_rate_multiplier, function()
     local resource = self.resource_spawn_chances:next()
     self.stage.area:addGameObject(resource)
     if (self.stage.player.chances.spawn_double_hp_chance:next() and resource == 'HP')
@@ -91,7 +93,7 @@ function Director:setResourceSpawns()
 end
 
 function Director:setAttackSpawns()
-  self.timer:every(30, function()
+  self.timer:every(30 / self.stage.player.attack_spawn_rate_multiplier, function()
     self.stage.area:addGameObject('Attack')
   end)
 end

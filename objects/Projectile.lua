@@ -24,6 +24,29 @@ function Projectile:new(area, x, y, opts)
         {parent = self, r = random(1, 3), d = random(0.1, 0.2), color = skill_point_color})
     end)
   end
+
+  if current_room.player.projectile_ninety_degree_change then
+    self.timer:after(0.2 / current_room.player.angle_change_frequency_multiplier, function()
+      self.ninety_degree_direction = table.random({-1, 1})
+      self.r = self.r + self.ninety_degree_direction * math.pi / 2
+      self.timer:every('ninety_degree_first', 0.25 / current_room.player.angle_change_frequency_multiplier, function()
+        self.r = self.r - self.ninety_degree_direction * math.pi / 2
+        self.timer:after('ninety_degree_second', 0.1 / current_room.player.angle_change_frequency_multiplier, function()
+          self.r = self.r - self.ninety_degree_direction * math.pi / 2
+          self.ninety_degree_direction = -self.ninety_degree_direction
+        end)
+      end)
+    end)
+  end
+
+  if current_room.player.projectile_random_degree_change then
+    self.timer:after(0.2 / current_room.player.angle_change_frequency_multiplier, function()
+      self.r = self.r + table.random({-1, 1}) * math.pi / 6
+      self.timer:every('thirty_degree', 0.25 / current_room.player.angle_change_frequency_multiplier, function()
+        self.r = self.r + table.random({-1, 1}) * math.pi / 6
+      end)
+    end)
+  end
 end
 
 function Projectile:update(dt)

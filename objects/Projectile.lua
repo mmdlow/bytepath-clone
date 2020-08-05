@@ -77,6 +77,17 @@ function Projectile:new(area, x, y, opts)
       self.timer:tween('slow_fast_second', 0.3, self, {v = initial_v * current_room.player.projectile_deceleration_multiplier * 2}, 'linear')
     end)
   end
+
+  if self.shield then
+    self.orbit_distance = random(32, 64)
+    self.orbit_speed = random(-6, 6)
+    self.orbit_offset = random(0, 2 * math.pi)
+    self.invisible = true
+    self.timer:after(0.05, function() self.invisible = false end)
+    self.timer:after(6, function() self:die() end)
+  end
+
+  self.previous_x, self.previous_y = self.collider:getPosition()
 end
 
 function Projectile:update(dt)
@@ -129,10 +140,25 @@ function Projectile:update(dt)
     self.collider:setLinearVelocity(self.v * math.cos(self.r), self.v * math.sin(self.r))
   end
 
+  -- Shield attack
+  if self.shield then
+    local player = current_room.player
+    self.collider:setPosition(
+      player.x + self.orbit_distance * math.cos(self.orbit_speed * time + self.orbit_offset),
+      player.y + self.orbit_distance * math.sin(self.orbit_speed * time + self.orbit_offset)
+    )
+    local x, y = self.collider:getPosition()
+    local dx, dy = x - self.previous_x, y - self.previous_y
+    self.r = Vector(dx, dy):angleTo()
+  end
+
   if self.x < 0 or self.y < 0 or self.x > gw or self.y > gh then self:die() end
+
+  self.previous_x, self.previous_y = self.collider:getPosition()
 end
 
 function Projectile:draw()
+  if self.invisible then return end
   pushRotate(self.x, self.y, Vector(self.collider:getLinearVelocity()):angleTo())
   if self.attack == 'Homing' then
     love.graphics.setColor(self.color)

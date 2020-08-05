@@ -14,6 +14,8 @@ require 'globals'
 require 'libraries/utf8'
 
 function love.load()
+  time = 0
+
   love.graphics.setDefaultFilter('nearest', 'nearest')
   love.graphics.setLineStyle('rough')
 
@@ -75,6 +77,7 @@ function love.load()
 end
 
 function love.update(dt)
+  time = time + dt
   camera:update(dt * slow_amount)
   timer:update(dt * slow_amount)
   if current_room then current_room:update(dt * slow_amount) end

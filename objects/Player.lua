@@ -141,6 +141,7 @@ function Player:new(area, x, y, opts)
   self.spawn_double_hp_chance = 0
   self.spawn_double_sp_chance = 0
   self.gain_double_sp_chance = 0
+  self.shield_projectile_chance = 0
 
   --booleans
   self.while_boosting_increased_cycle_speed_chance = false
@@ -150,7 +151,7 @@ function Player:new(area, x, y, opts)
   self.projectile_random_degree_change = false
   self.wavy_projectiles = false
   self.fast_slow = false
-  self.slow_fast = true
+  self.slow_fast = false
 
   -- ship design polygon points
   self.w = self.base_w * self.size_multiplier
@@ -404,9 +405,13 @@ function Player:shoot()
 
   self.ammo = self.ammo - attacks[self.attack].ammo * self.ammo_consumption_multiplier
 
+  local mods = {
+    shield = self.chances.shield_projectile_chance:next()
+  }
+
   if self.attack == 'Neutral' then
     self.area:addGameObject('Projectile', self.x + 1.5 * d * math.cos(self.r),
-      self.y + 1.5 * d * math.sin(self.r), {r = self.r, attack = self.attack})
+      self.y + 1.5 * d * math.sin(self.r), table.merge({r = self.r, attack = self.attack}, mods))
 
   elseif self.attack == 'Double' then
     self.area:addGameObject('Projectile',

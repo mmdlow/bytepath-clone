@@ -4,6 +4,7 @@ function Player:new(area, x, y, opts)
   Player.super.new(self, area, x, y, opts)
 
   self.w, self.h = 12, 12
+  self.base_w, self.base_h = self.w, self.h
   self.collider = self.area.world:newCircleCollider(self.x, self.y, self.w)
   self.collider:setObject(self)
   self.collider:setCollisionClass('Player')
@@ -66,7 +67,86 @@ function Player:new(area, x, y, opts)
   self.cycle_timer = 0
   self.cycle_cooldown = 5
 
+  -- set attack
+  self:setAttack('Neutral')
+  self.shoot_timer = 0
+  self.shoot_cooldown = attacks[self.attack].cooldown
+
+  -- multipliers
+  self.hp_multiplier = 1
+  self.ammo_multiplier = 1
+  self.boost_multiplier = 1
+  self.luck_multiplier = 1
+  self.spawn_hp_chance_multiplier = 1
+  self.spawn_boost_chance_multiplier = 1
+  self.spawn_sp_chance_multiplier = 1
+  self.enemy_spawn_rate_multiplier = 1
+  self.resource_spawn_rate_multiplier = 1
+  self.attack_spawn_rate_multiplier = 1
+  self.turn_rate_multiplier = 1
+  self.boost_effectiveness_multiplier = 1
+  self.projectile_size_multiplier = 1
+  self.boost_recharge_rate_multiplier = 1
+  self.invulnerability_time_multiplier = 1
+  self.ammo_consumption_multiplier = 1
+  self.size_multiplier = 1
+  self.stat_boost_duration_multiplier = 1
+
+  self.aspd_multiplier = Stat(1)
+  self.mvspd_multiplier = Stat(1)
+  self.pspd_multiplier = Stat(1)
+  self.cycle_speed_multiplier = Stat(1)
+
+  -- flats
+  self.flat_hp = 0
+  self.flat_boost = 0
+  self.ammo_gain = 0
+
+  -- chances
+  self.on_ammo_pickup_launch_homing_projectile_chance = 0
+  self.on_ammo_pickup_regain_hp_chance = 0
+
+  self.on_sp_pickup_regain_hp_chance = 0
+  self.on_sp_pickup_spawn_haste_area_chance = 0
+
+  self.on_hp_pickup_spawn_haste_area_chance = 0
+
+  self.on_cycle_regain_hp_chance = 0
+  self.on_cycle_regain_full_ammo_chance = 0
+  self.on_cycle_spawn_haste_area_chance = 0
+  self.on_cycle_spawn_sp_chance = 0
+  self.on_cycle_spawn_hp_chance = 0
+  self.on_cycle_change_attack_chance = 0
+  self.on_cycle_barrage_chance = 0
+  self.on_cycle_launch_homing_projectile_chance = 0
+  self.on_cycle_mvspd_boost_chance = 0
+  self.on_cycle_pspd_boost_chance = 0
+  self.on_cycle_pspd_inhibit_chance = 0
+
+  self.on_kill_barrage_chance = 0
+  self.on_kill_regain_ammo_chance = 0
+  self.on_kill_launch_homing_projectile_chance = 0
+  self.on_kill_regain_boost_chance = 0
+  self.on_kill_spawn_boost_chance = 0
+  self.on_kill_gain_aspd_boost_chance = 0
+
+  self.while_boosting_launch_homing_projectile_chance = 0
+
+  self.drop_double_ammo_chance = 0
+  self.attack_twice_chance = 0
+  self.spawn_double_hp_chance = 0
+  self.spawn_double_sp_chance = 0
+  self.gain_double_sp_chance = 0
+
+  --booleans
+  self.while_boosting_increased_cycle_speed_chance = false
+  self.while_boosting_increased_luck = true
+  self.while_boosting_invulnerability = false
+
   -- ship design polygon points
+  self.w = self.base_w * self.size_multiplier
+  self.h = self.base_h * self.size_multiplier
+
   self.polygons = {}
   if self.ship == 'Fighter' then
     self.polygons[1] = {
@@ -132,74 +212,7 @@ function Player:new(area, x, y, opts)
       self.w / 4, self.h * 0.75
     }
   end
-
-  -- set attack
-  self:setAttack('Neutral')
-  self.shoot_timer = 0
-  self.shoot_cooldown = attacks[self.attack].cooldown
-
-  -- multipliers
-  self.hp_multiplier = 1
-  self.ammo_multiplier = 1
-  self.boost_multiplier = 1
-  self.luck_multiplier = 1
-  self.spawn_hp_chance_multiplier = 1
-  self.spawn_boost_chance_multiplier = 1
-  self.spawn_sp_chance_multiplier = 1
-  self.enemy_spawn_rate_multiplier = 1
-  self.resource_spawn_rate_multiplier = 1
-  self.attack_spawn_rate_multiplier = 1
-  self.aspd_multiplier = Stat(1)
-  self.mvspd_multiplier = Stat(1)
-  self.pspd_multiplier = Stat(1)
-  self.cycle_speed_multiplier = Stat(1)
-
-  -- flats
-  self.flat_hp = 0
-  self.flat_boost = 0
-  self.ammo_gain = 0
-
-  -- chances
-  self.on_ammo_pickup_launch_homing_projectile_chance = 0
-  self.on_ammo_pickup_regain_hp_chance = 0
-
-  self.on_sp_pickup_regain_hp_chance = 0
-  self.on_sp_pickup_spawn_haste_area_chance = 0
-
-  self.on_hp_pickup_spawn_haste_area_chance = 0
-
-  self.on_cycle_regain_hp_chance = 0
-  self.on_cycle_regain_full_ammo_chance = 0
-  self.on_cycle_spawn_haste_area_chance = 0
-  self.on_cycle_spawn_sp_chance = 0
-  self.on_cycle_spawn_hp_chance = 0
-  self.on_cycle_change_attack_chance = 0
-  self.on_cycle_barrage_chance = 0
-  self.on_cycle_launch_homing_projectile_chance = 0
-  self.on_cycle_mvspd_boost_chance = 0
-  self.on_cycle_pspd_boost_chance = 0
-  self.on_cycle_pspd_inhibit_chance = 0
-
-  self.on_kill_barrage_chance = 0
-  self.on_kill_regain_ammo_chance = 0
-  self.on_kill_launch_homing_projectile_chance = 0
-  self.on_kill_regain_boost_chance = 0
-  self.on_kill_spawn_boost_chance = 0
-  self.on_kill_gain_aspd_boost_chance = 0
-
-  self.while_boosting_launch_homing_projectile_chance = 0
-
-  self.drop_double_ammo_chance = 0
-  self.attack_twice_chance = 0
-  self.spawn_double_hp_chance = 0
-  self.spawn_double_sp_chance = 0
-  self.gain_double_sp_chance = 0
-
-  --booleans
-  self.while_boosting_increased_cycle_speed_chance = false
-  self.while_boosting_increased_luck = true
-  self.while_boosting_invulnerability = false
-
+  
   self:setStats()
   self:setChances()
 end
@@ -227,6 +240,9 @@ end
 function Player:update(dt)
   Player.super.update(self, dt)
 
+  self.w = self.base_w * self.size_multiplier
+  self.h = self.base_h * self.size_multiplier
+
   -- stat multiplier management
   if self.inside_haste_area then self.aspd_multiplier:increase(100) end
   if self.aspd_boosting then self.aspd_multiplier:increase(100) end
@@ -244,8 +260,8 @@ function Player:update(dt)
   self.cycle_speed_multiplier:update(dt)
 
   -- movement
-  if input:down('left') then self.r = self.r - self.rv * dt end
-  if input:down('right') then self.r = self.r + self.rv * dt end
+  if input:down('left') then self.r = self.r - self.rv * dt * self.turn_rate_multiplier end
+  if input:down('right') then self.r = self.r + self.rv * dt * self.turn_rate_multiplier end
 
   -- velocity management
   self.v = math.min(self.v + self.a * dt, self.max_v)
@@ -294,7 +310,14 @@ function Player:update(dt)
   
   -- boost management
   self.max_v = self.base_max_v * self.mvspd_multiplier.value
-  self.boost = math.min(self.boost + 10 * dt, self.max_boost)
+
+  ---- prevent boost depletion rate from being affected by boost_recharge_rate_multiplier
+  if self.boosting then
+    self.boost = math.min(self.boost + 10 * dt, self.max_boost)
+  else
+    self.boost = math.min(self.boost + 10 * dt * self.boost_recharge_rate_multiplier, self.max_boost)
+  end
+
   self.boost_timer = self.boost_timer + dt
   if self.boost_timer > self.boost_cooldown then self.can_boost = true end
   self.boosting = false
@@ -303,7 +326,7 @@ function Player:update(dt)
   if input:released('up') then self:onBoostEnd() end
   if input:down('up') and self.boost > 1 and self.can_boost then
     self.boosting = true
-    self.max_v = 1.5 * self.base_max_v * self.mvspd_multiplier.value
+    self.max_v = 1.5 * self.base_max_v * self.mvspd_multiplier.value * self.boost_effectiveness_multiplier
     self.boost = self.boost - 50 * dt
     if self.boost <= 1 then
       self.boosting = false
@@ -316,7 +339,7 @@ function Player:update(dt)
   if input:released('down') then self:onBoostEnd() end
   if input:down('down') and self.boost > 1 and self.can_boost then
     self.boosting = true
-    self.max_v = 0.5 * self.base_max_v
+    self.max_v = 0.5 * self.base_max_v / self.boost_effectiveness_multiplier
     self.boost = self.boost - 50 * dt
     if self.boost <= 1 then
       self.boosting = false
@@ -370,7 +393,7 @@ function Player:shoot()
     self.y + d * math.sin(self.r),
     {player = self, d = d})
 
-  self.ammo = self.ammo - attacks[self.attack].ammo
+  self.ammo = self.ammo - attacks[self.attack].ammo * self.ammo_consumption_multiplier
 
   if self.attack == 'Neutral' then
     self.area:addGameObject('Projectile', self.x + 1.5 * d * math.cos(self.r),
@@ -666,9 +689,9 @@ function Player:hit(damage)
   if damage >= 30 then
     self.invincible = true
     self.invisible = true
-    self.timer:every(0.04, function() self.invisible = not self.invisible end, 50)
-    self.timer:after(2, function() self.invincible = false end)
-    self.timer:after(2.04, function() self.invisible = false end)
+    self.timer:every(0.04, function() self.invisible = not self.invisible end, 50 * self.invulnerability_time_multiplier)
+    self.timer:after(2 * self.invulnerability_time_multiplier, function() self.invincible = false end)
+    self.timer:after(2 * self.invulnerability_time_multiplier + 0.04, function() self.invisible = false end)
     camera:shake(6, 60, 0.2)
     flash(3)
     slow(0.25, 0.5)

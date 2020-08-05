@@ -5,6 +5,7 @@ function Projectile:new(area, x, y, opts)
 
   self.s = opts.s or 2.5 -- collider radius
   self.v = opts.v or 200 -- collider velocity
+  self.base_s = self.s
   self.base_v = self.v
 
   self.collider = self.area.world:newCircleCollider(self.x, self.y, self.s)
@@ -27,6 +28,7 @@ end
 
 function Projectile:update(dt)
   self.v = self.base_v * current_room.player.pspd_multiplier.value
+  self.s = self.base_s * current_room.player.projectile_size_multiplier
 
   if self.collider:enter('Enemy') then
     local collision_data = self.collider:getEnterCollisionData('Enemy')
@@ -90,7 +92,7 @@ function Projectile:draw()
     love.graphics.polygon('fill',
       self.x, self.y - 1.5 * self.s, self.x, self.y + 1.5 * self.s, self.x + 1.5 * self.s, self.y)
   else
-    love.graphics.setLineWidth(self.s, self.x / 4)
+    love.graphics.setLineWidth(self.s - self.s / 4)
     love.graphics.setColor(self.color)
     love.graphics.line(self.x - 2 * self.s, self.y, self.x, self.y) -- 1st half of line
     love.graphics.setColor(default_color)

@@ -7,6 +7,7 @@ function Projectile:new(area, x, y, opts)
   self.v = (opts.v or 200) * current_room.player.pspd_multiplier.value -- collider velocity
   self.base_s = self.s
   self.base_v = self.v
+  self.rv = table.random({random(-2 * math.pi, -math.pi), random(math.pi, 2 * math.pi)})
 
   self.collider = self.area.world:newCircleCollider(self.x, self.y, self.s)
   self.collider:setObject(self)
@@ -29,6 +30,15 @@ function Projectile:new(area, x, y, opts)
     self.color = table.random(negative_colors)
     if not self.shield then
       self.timer:tween(random(0.4, 0.6) * current_room.player.projectile_duration_multiplier, self, {v = 0}, 'linear', function() self:die() end)
+    end
+
+  elseif self.attack == 'Spin' then
+    if not self.shield then
+      self.timer:after(random(2.4, 3.2) * current_room.player.projectile_duration_multiplier, function() self:die() end)
+      self.timer:every(0.05, function()
+        self.area:addGameObject('ProjectileTrail', self.x, self.y,
+        {r = Vector(self.collider:getLinearVelocity()):angleTo(), color = self.color, s = self.s})
+      end)
     end
   end
 
@@ -118,6 +128,11 @@ function Projectile:update(dt)
   
   Projectile.super.update(self, dt)
 
+  -- Spin attack
+  if self.attack == 'Spin' then
+    self.r = self.r + self.rv * dt
+  end
+
   -- Homing attack
   if self.attack == 'Homing' then
     -- Acquire new target
@@ -188,7 +203,7 @@ end
 function Projectile:die()
   self.dead = true
   self.area:addGameObject('ProjectileDeathEffect', self.x, self.y,
-  {color = hp_color, w = 3 * self.s})
+    {color = hp_color, w = 3 * self.s})
 end
 
 function Projectile:destroy()

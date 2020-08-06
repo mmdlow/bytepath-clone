@@ -14,7 +14,8 @@ attacks = {
   ['Back']    = {cooldown = 0.32, ammo = 2, abbreviation = 'Ba', color = skill_point_color},
   ['Side']    = {cooldown = 0.32, ammo = 2, abbreviation = 'Si', color = boost_color},
   ['Homing']  = {cooldown = 0.56, ammo = 4, abbreviation = 'H', color = skill_point_color},
-  ['Blast']   = {cooldown = 0.64, ammo = 6, abbreviation = 'W', color = default_color}
+  ['Blast']   = {cooldown = 0.64, ammo = 6, abbreviation = 'W', color = default_color},
+  ['Spin']    = {cooldown = 0.32, ammo = 2, abbreviation = 'Sp', color = hp_color}
 }
 
 enemies = {'Shooter', 'Rock'}

@@ -40,6 +40,16 @@ function Projectile:new(area, x, y, opts)
         {r = Vector(self.collider:getLinearVelocity()):angleTo(), color = self.color, s = self.s})
       end)
     end
+
+  elseif self.attack == 'Flame' then
+    self.damage = 50
+    if not self.shield then
+      self.timer:tween(random(0.6, 1) * current_room.player.projectile_duration_multiplier, self, {v = 0}, 'linear', function() self:die() end)
+      self.timer:every(0.05, function()
+        self.area:addGameObject('ProjectileTrail', self.x, self.y,
+        {r = Vector(self.collider:getLinearVelocity()):angleTo(), color = self.color, s = self.s})
+      end)
+    end
   end
 
   if current_room.player.projectile_ninety_degree_change then

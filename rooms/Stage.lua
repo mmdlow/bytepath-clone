@@ -82,7 +82,7 @@ function Stage:draw()
     
     -- Ammo
     local r, g, b = unpack(ammo_color)
-    local ammo, max_ammo = self.player.ammo, self.player.max_ammo
+    local ammo, max_ammo = math.ceil(self.player.ammo), self.player.max_ammo
     love.graphics.setColor(r, g, b)
     love.graphics.rectangle('fill', gw / 2 - 52, 16, 48 * (ammo / max_ammo), 4)
     love.graphics.setColor(r - 32, g - 32, b - 32)

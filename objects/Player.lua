@@ -68,7 +68,7 @@ function Player:new(area, x, y, opts)
   self.cycle_cooldown = 5
 
   -- set attack
-  self:setAttack('Neutral')
+  self:setAttack('Flame')
   self.shoot_timer = 0
   self.shoot_cooldown = attacks[self.attack].cooldown
 
@@ -488,10 +488,16 @@ function Player:shoot()
     camera:shake(4, 60, 0.4)
 
   elseif self.attack == 'Spin' then
-    self.ammo = self.ammo - attacks[self.attack].ammo
     self.area:addGameObject('Projectile',
       self.x + 1.5 * d * math.cos(self.r), self.y + 1.5 * d * math.sin(self.r),
       table.merge({r = self.r, attack = self.attack}, mods))
+
+  elseif self.attack == 'Flame' then
+    local random_angle = random(-math.pi / 16, math.pi / 16)
+    self.area:addGameObject('Projectile',
+      self.x + 1.5 * d * math.cos(self.r + random_angle),
+      self.y + 1.5 * d * math.sin(self.r + random_angle),
+      table.merge({r = self.r + random_angle, attack = self.attack}, mods))
   end
 
   if self.chances.attack_twice_chance:next() then

@@ -28,7 +28,7 @@ function Projectile:new(area, x, y, opts)
     self.damage = 75
     self.color = table.random(negative_colors)
     if not self.shield then
-      self.timer:tween(random(0.4, 0.6), self, {v = 0}, 'linear', function() self:die() end)
+      self.timer:tween(random(0.4, 0.6) * current_room.player.projectile_duration_multiplier, self, {v = 0}, 'linear', function() self:die() end)
     end
   end
 
@@ -91,7 +91,7 @@ function Projectile:new(area, x, y, opts)
     self.orbit_offset = random(0, 2 * math.pi)
     self.invisible = true
     self.timer:after(0.05, function() self.invisible = false end)
-    self.timer:after(6, function() self:die() end)
+    self.timer:after(6 * current_room.player.projectile_duration_multiplier, function() self:die() end)
   end
 
   self.previous_x, self.previous_y = self.collider:getPosition()

@@ -95,6 +95,7 @@ function Player:new(area, x, y, opts)
   self.projectile_waviness_multiplier = 1
   self.projectile_acceleration_multiplier = 1
   self.projectile_deceleration_multiplier = 1
+  self.projectile_duration_multiplier = 1
 
   self.aspd_multiplier = Stat(1)
   self.mvspd_multiplier = Stat(1)

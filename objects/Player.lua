@@ -68,7 +68,7 @@ function Player:new(area, x, y, opts)
   self.cycle_cooldown = 5
 
   -- set attack
-  self:setAttack('Flame')
+  self:setAttack('4Split')
   self.shoot_timer = 0
   self.shoot_cooldown = attacks[self.attack].cooldown
 
@@ -498,6 +498,21 @@ function Player:shoot()
       self.x + 1.5 * d * math.cos(self.r + random_angle),
       self.y + 1.5 * d * math.sin(self.r + random_angle),
       table.merge({r = self.r + random_angle, attack = self.attack}, mods))
+
+  elseif self.attack == 'Bounce' then
+    self.area:addGameObject('Projectile',
+      self.x + 1.5 * d * math.cos(self.r), self.y + 1.5 * d * math.sin(self.r),
+      table.merge({r = self.r, attack = self.attack, bounce = 4}, mods))
+
+  elseif self.attack == '2Split' then
+    self.area:addGameObject('Projectile',
+      self.x + 1.5 * d * math.cos(self.r), self.y + 1.5 * d * math.sin(self.r),
+      table.merge({r = self.r, attack = self.attack}, mods))
+
+  elseif self.attack == '4Split' then
+    self.area:addGameObject('Projectile',
+      self.x + 1.5 * d * math.cos(self.r), self.y + 1.5 * d * math.sin(self.r),
+      table.merge({r = self.r, attack = self.attack}, mods))
   end
 
   if self.chances.attack_twice_chance:next() then

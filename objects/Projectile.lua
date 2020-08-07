@@ -12,8 +12,8 @@ function Projectile:new(area, x, y, opts)
   self.collider = self.area.world:newCircleCollider(self.x, self.y, self.s)
   self.collider:setObject(self)
   self.collider:setCollisionClass('Projectile')
-
-  self.color = attacks[self.attack].color
+  
+  self.color = opts.color or attacks[self.attack].color
   self.color_switch = true
 
   self.damage = 100
@@ -23,6 +23,13 @@ function Projectile:new(area, x, y, opts)
       local r = Vector(self.collider:getLinearVelocity()):angleTo()
       self.area:addGameObject('TrailParticle', self.x - self.s * math.cos(r), self.y - self.s * math.sin(r),
         {parent = self, r = random(1, 3), d = random(0.1, 0.2), color = skill_point_color})
+    end)
+
+  elseif self.attack == '2Split' or self.attack == '4Split' then
+    self.timer:every(0.02, function()
+      local r = Vector(self.collider:getLinearVelocity()):angleTo()
+      self.area:addGameObject('TrailParticle', self.x - self.s * math.cos(r), self.y - self.s * math.sin(r),
+        {parent = self, r = random(1, 3), d = random(0.1, 0.2), color = self.color})
     end)
 
   elseif self.attack == 'Blast' then
@@ -115,6 +122,7 @@ function Projectile:new(area, x, y, opts)
   end
 
   self.previous_x, self.previous_y = self.collider:getPosition()
+
 end
 
 function Projectile:update(dt)
@@ -126,17 +134,95 @@ function Projectile:update(dt)
       self:die()
       if object.hp <= 0 then current_room.player:onKill(object) end
     end
-  end
 
-  -- if Spread attack, set projectile color to a random color every other frame
-  self.color_switch = not self.color_switch
-  if (self.attack == 'Spread' and self.color_switch) then
-    self.color = table.random(all_colors)
-  else
-    self.color = attacks[self.attack].color
+    if self.attack == '2Split' then
+      self.area:addGameObject('Projectile',
+        self.x, self.y, {r = self.r + math.pi / 4, attack = 'Neutral', color = self.color})
+      self.area:addGameObject('Projectile',
+        self.x, self.y, {r = self.r - math.pi / 4, attack = 'Neutral', color = self.color})
+
+    elseif self.attack == '4Split' then
+      self.area:addGameObject('Projectile',
+        self.x, self.y, {r = self.r + math.pi / 4, attack = 'Neutral', color = self.color})
+      self.area:addGameObject('Projectile',
+        self.x, self.y, {r = self.r - math.pi / 4, attack = 'Neutral', color = self.color})
+      self.area:addGameObject('Projectile',
+        self.x, self.y, {r = self.r + 3 * math.pi / 4, attack = 'Neutral', color = self.color})
+      self.area:addGameObject('Projectile',
+        self.x, self.y, {r = self.r - 3 * math.pi / 4, attack = 'Neutral', color = self.color})
+    end
   end
   
   Projectile.super.update(self, dt)
+
+  -- Bounce Wall Collision
+  if self.bounce and self.bounce > 0 then
+    if self.x < 0 then
+      self.r = math.pi - self.r
+      self.bounce = self.bounce - 1
+    end
+    if self.y < 0 then
+      self.r = 2 * math.pi - self.r
+      self.bounce = self.bounce - 1
+    end
+    if self.x > gw then
+      self.r = math.pi - self.r
+      self.bounce = self.bounce - 1
+    end
+    if self.y > gh then
+      self.r = 2 * math.pi - self.r
+      self.bounce = self.bounce - 1
+    end
+
+  -- 2Split and 4Split Wall Collision
+  elseif self.attack == '2Split' or self.attack == '4Split' then
+    if self.x < 0 then
+      self.area:addGameObject('Projectile',
+        self.x + self.s, self.y,
+        {r = 2 * math.pi - math.pi / 4, attack = 'Neutral', color = self.color})
+      self.area:addGameObject('Projectile',
+        self.x + self.s, self.y,
+        {r = math.pi / 4, attack = 'Neutral', color = self.color})
+      self:die()
+    end
+    if self.y < 0 then
+      self.area:addGameObject('Projectile',
+        self.x, self.y + self.s,
+        {r = 3 * math.pi / 4, attack = 'Neutral', color = self.color})
+      self.area:addGameObject('Projectile',
+        self.x, self.y + self.s,
+        {r = math.pi / 4, attack = 'Neutral', color = self.color})
+      self:die()
+    end
+    if self.x > gw then
+      self.area:addGameObject('Projectile',
+        self.x - self.s, self.y,
+        {r = 5 * math.pi / 4, attack = 'Neutral', color = self.color})
+      self.area:addGameObject('Projectile',
+        self.x - self.s, self.y,
+        {r = 3 * math.pi / 4, attack = 'Neutral', color = self.color})
+      self:die()
+    end
+    if self.y > gh then
+      self.area:addGameObject('Projectile',
+        self.x, self.y - self.s,
+        {r = 5 * math.pi / 4, attack = 'Neutral', color = self.color})
+      self.area:addGameObject('Projectile',
+        self.x, self.y - self.s,
+        {r = 2 * math.pi  - math.pi / 4, attack = 'Neutral', color = self.color})
+      self:die()
+    end
+
+  else
+    if self.x < 0 or self.y < 0 or self.x > gw or self.y > gh then self:die() end
+  end
+
+  -- Spread attack
+  ---- set projectile color to a random color every other frame
+  self.color_switch = not self.color_switch
+  if (self.attack == 'Spread' and self.color_switch) then
+    self.color = table.random(all_colors)
+  end
 
   -- Spin attack
   if self.attack == 'Spin' then
@@ -184,15 +270,14 @@ function Projectile:update(dt)
     self.r = Vector(dx, dy):angleTo()
   end
 
-  if self.x < 0 or self.y < 0 or self.x > gw or self.y > gh then self:die() end
-
   self.previous_x, self.previous_y = self.collider:getPosition()
 end
 
 function Projectile:draw()
   if self.invisible then return end
   pushRotate(self.x, self.y, Vector(self.collider:getLinearVelocity()):angleTo())
-  if self.attack == 'Homing' then
+
+  if self.attack == 'Homing' or self.attack == '2Split' or self.attack == '4Split' then
     love.graphics.setColor(self.color)
     love.graphics.polygon('fill',
       self.x - 2 * self.s, self.y, self.x, self.y - 1.5 * self.s, self.x, self.y + 1.5 * self.s)
@@ -202,6 +287,11 @@ function Projectile:draw()
   else
     love.graphics.setLineWidth(self.s - self.s / 4)
     love.graphics.setColor(self.color)
+
+    if self.attack == 'Bounce' then
+      love.graphics.setColor(table.random(default_colors))
+    end
+
     love.graphics.line(self.x - 2 * self.s, self.y, self.x, self.y) -- 1st half of line
     love.graphics.setColor(default_color)
     love.graphics.line(self.x, self.y, self.x + 2 * self.s, self.y)

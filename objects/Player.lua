@@ -68,7 +68,7 @@ function Player:new(area, x, y, opts)
   self.cycle_cooldown = 5
 
   -- set attack
-  self:setAttack('4Split')
+  self:setAttack('Lightning')
   self.shoot_timer = 0
   self.shoot_cooldown = attacks[self.attack].cooldown
 
@@ -404,20 +404,20 @@ function Player:shoot()
     self.y + d * math.sin(self.r),
     {player = self, d = d})
 
-  self.ammo = self.ammo - attacks[self.attack].ammo * self.ammo_consumption_multiplier
-
   local mods = {
     shield = self.chances.shield_projectile_chance:next()
   }
 
   -- TODO: integrate merging of mods table with opts table for all attacks
   if self.attack == 'Neutral' then
+    self.ammo = self.ammo - attacks[self.attack].ammo * self.ammo_consumption_multiplier
     self.area:addGameObject('Projectile',
       self.x + 1.5 * d * math.cos(self.r),
       self.y + 1.5 * d * math.sin(self.r),
       table.merge({r = self.r, attack = self.attack}, mods))
 
   elseif self.attack == 'Double' then
+    self.ammo = self.ammo - attacks[self.attack].ammo * self.ammo_consumption_multiplier
     self.area:addGameObject('Projectile',
       self.x + 1.5 * d * math.cos(self.r + math.pi / 12),
       self.y + 1.5 * d * math.sin(self.r + math.pi / 12),
@@ -428,6 +428,7 @@ function Player:shoot()
       table.merge({r = self.r - math.pi/12, attack = self.attack}, mods))
 
   elseif self.attack == 'Triple' then
+    self.ammo = self.ammo - attacks[self.attack].ammo * self.ammo_consumption_multiplier
     self.area:addGameObject('Projectile',
       self.x + 1.5 * d * math.cos(self.r + math.pi / 12),
       self.y + 1.5 * d * math.sin(self.r + math.pi / 12),
@@ -442,16 +443,19 @@ function Player:shoot()
       table.merge({r = self.r - math.pi/12, attack = self.attack}, mods))
 
   elseif self.attack == 'Rapid' then
+    self.ammo = self.ammo - attacks[self.attack].ammo * self.ammo_consumption_multiplier
     self.area:addGameObject('Projectile',
       self.x + 1.5 * d * math.cos(self.r), self.y + 1.5 * d * math.sin(self.r),
       table.merge({r = self.r, attack = self.attack}, mods))
 
   elseif self.attack == 'Spread' then
+    self.ammo = self.ammo - attacks[self.attack].ammo * self.ammo_consumption_multiplier
     self.area:addGameObject('Projectile',
       self.x + 1.5 * d * math.cos(self.r), self.y + 1.5 * d * math.sin(self.r),
       table.merge({r = self.r + random(-math.pi / 8, math.pi / 8), attack = self.attack}, mods))
 
   elseif self.attack == 'Back' then
+    self.ammo = self.ammo - attacks[self.attack].ammo * self.ammo_consumption_multiplier
     self.area:addGameObject('Projectile',
       self.x + 1.5 * d * math.cos(self.r), self.y + 1.5 * d * math.sin(self.r),
       table.merge({r = self.r, attack = self.attack}, mods))
@@ -460,6 +464,7 @@ function Player:shoot()
       table.merge({r = self.r + math.pi, attack = self.attack}, mods))
 
   elseif self.attack == 'Side' then
+    self.ammo = self.ammo - attacks[self.attack].ammo * self.ammo_consumption_multiplier
     self.area:addGameObject('Projectile',
       self.x + 1.5 * d * math.cos(self.r + math.pi / 2),
       self.y + 1.5 * d * math.sin(self.r + math.pi / 2),
@@ -473,11 +478,13 @@ function Player:shoot()
       table.merge({r = self.r - math.pi / 2, attack = self.attack}, mods))
 
   elseif self.attack == 'Homing' then
+    self.ammo = self.ammo - attacks[self.attack].ammo * self.ammo_consumption_multiplier
     self.area:addGameObject('Projectile',
       self.x + 1.5 * d * math.cos(self.r), self.y + 1.5 * d * math.sin(self.r),
       table.merge({r = self.r, attack = self.attack}, mods))
   
   elseif self.attack == 'Blast' then
+    self.ammo = self.ammo - attacks[self.attack].ammo * self.ammo_consumption_multiplier
     for i = 1, 12 do
       local random_angle = random(-math.pi / 6, math.pi / 6)
       self.area:addGameObject('Projectile',
@@ -488,11 +495,13 @@ function Player:shoot()
     camera:shake(4, 60, 0.4)
 
   elseif self.attack == 'Spin' then
+    self.ammo = self.ammo - attacks[self.attack].ammo * self.ammo_consumption_multiplier
     self.area:addGameObject('Projectile',
       self.x + 1.5 * d * math.cos(self.r), self.y + 1.5 * d * math.sin(self.r),
       table.merge({r = self.r, attack = self.attack}, mods))
 
   elseif self.attack == 'Flame' then
+    self.ammo = self.ammo - attacks[self.attack].ammo * self.ammo_consumption_multiplier
     local random_angle = random(-math.pi / 16, math.pi / 16)
     self.area:addGameObject('Projectile',
       self.x + 1.5 * d * math.cos(self.r + random_angle),
@@ -500,19 +509,56 @@ function Player:shoot()
       table.merge({r = self.r + random_angle, attack = self.attack}, mods))
 
   elseif self.attack == 'Bounce' then
+    self.ammo = self.ammo - attacks[self.attack].ammo * self.ammo_consumption_multiplier
     self.area:addGameObject('Projectile',
       self.x + 1.5 * d * math.cos(self.r), self.y + 1.5 * d * math.sin(self.r),
       table.merge({r = self.r, attack = self.attack, bounce = 4}, mods))
 
   elseif self.attack == '2Split' then
+    self.ammo = self.ammo - attacks[self.attack].ammo * self.ammo_consumption_multiplier
     self.area:addGameObject('Projectile',
       self.x + 1.5 * d * math.cos(self.r), self.y + 1.5 * d * math.sin(self.r),
       table.merge({r = self.r, attack = self.attack}, mods))
 
   elseif self.attack == '4Split' then
+    self.ammo = self.ammo - attacks[self.attack].ammo * self.ammo_consumption_multiplier
     self.area:addGameObject('Projectile',
       self.x + 1.5 * d * math.cos(self.r), self.y + 1.5 * d * math.sin(self.r),
       table.merge({r = self.r, attack = self.attack}, mods))
+
+  elseif self.attack == 'Lightning' then
+    local x1, y1 = self.x + d * math.cos(self.r), self.y + d * math.sin(self.r)
+    local cx, cy = x1 + 24 * math.cos(self.r), y1 + 24 * math.sin(self.r)
+
+    -- Find closest enemy
+    local nearby_enemies = self.area:getGameObjects(function(e)
+      for _, enemy in ipairs(enemies) do
+        if e:is(_G[enemy]) and (distance(e.x, e.y, cx, cy) < 64) then
+          return true
+        end
+      end
+    end)
+
+    table.sort(nearby_enemies, function(a, b)
+      return distance(a.x, a.y, cx, cy) < distance(b.x, b.y, cx, cy)
+    end)
+    local closest_enemy = nearby_enemies[1]
+
+    -- Attack closest enemy
+    if closest_enemy then
+      self.ammo = self.ammo - attacks[self.attack].ammo * self.ammo_consumption_multiplier
+      closest_enemy:hit()
+      local x2, y2 = closest_enemy.x, closest_enemy.y
+      self.area:addGameObject('LightningLine', 0, 0, {x1 = x1, y1 = y1, x2 = x2, y2 = y2})
+      for i = 1, love.math.random(4, 8) do
+        self.area:addGameObject('ExplodeParticle', x1, y1,
+          {color = table.random({default_color, boost_color})})
+      end
+      for i = 1, love.math.random(4, 8) do
+        self.area:addGameObject('ExplodeParticle', x2, y2,
+          {color = table.random({default_color, boost_color})})
+      end
+    end
   end
 
   if self.chances.attack_twice_chance:next() then

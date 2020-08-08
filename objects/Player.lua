@@ -68,7 +68,7 @@ function Player:new(area, x, y, opts)
   self.cycle_cooldown = 5
 
   -- set attack
-  self:setAttack('Lightning')
+  self:setAttack('Explode')
   self.shoot_timer = 0
   self.shoot_cooldown = attacks[self.attack].cooldown
 
@@ -521,6 +521,12 @@ function Player:shoot()
       table.merge({r = self.r, attack = self.attack}, mods))
 
   elseif self.attack == '4Split' then
+    self.ammo = self.ammo - attacks[self.attack].ammo * self.ammo_consumption_multiplier
+    self.area:addGameObject('Projectile',
+      self.x + 1.5 * d * math.cos(self.r), self.y + 1.5 * d * math.sin(self.r),
+      table.merge({r = self.r, attack = self.attack}, mods))
+
+  elseif self.attack == 'Explode' then
     self.ammo = self.ammo - attacks[self.attack].ammo * self.ammo_consumption_multiplier
     self.area:addGameObject('Projectile',
       self.x + 1.5 * d * math.cos(self.r), self.y + 1.5 * d * math.sin(self.r),

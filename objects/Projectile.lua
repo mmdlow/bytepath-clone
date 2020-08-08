@@ -25,7 +25,7 @@ function Projectile:new(area, x, y, opts)
         {parent = self, r = random(1, 3), d = random(0.1, 0.2), color = skill_point_color})
     end)
 
-  elseif self.attack == '2Split' or self.attack == '4Split' then
+  elseif self.attack == '2Split' or self.attack == '4Split' or self.attack == 'Explode' then
     self.timer:every(0.02, function()
       local r = Vector(self.collider:getLinearVelocity()):angleTo()
       self.area:addGameObject('TrailParticle', self.x - self.s * math.cos(r), self.y - self.s * math.sin(r),
@@ -130,26 +130,12 @@ function Projectile:update(dt)
     local collision_data = self.collider:getEnterCollisionData('Enemy')
     local object = collision_data.collider:getObject()
     if object then
-      object:hit(self.damage)
       self:die()
-      if object.hp <= 0 then current_room.player:onKill(object) end
-    end
-
-    if self.attack == '2Split' then
-      self.area:addGameObject('Projectile',
-        self.x, self.y, {r = self.r + math.pi / 4, attack = 'Neutral', color = self.color})
-      self.area:addGameObject('Projectile',
-        self.x, self.y, {r = self.r - math.pi / 4, attack = 'Neutral', color = self.color})
-
-    elseif self.attack == '4Split' then
-      self.area:addGameObject('Projectile',
-        self.x, self.y, {r = self.r + math.pi / 4, attack = 'Neutral', color = self.color})
-      self.area:addGameObject('Projectile',
-        self.x, self.y, {r = self.r - math.pi / 4, attack = 'Neutral', color = self.color})
-      self.area:addGameObject('Projectile',
-        self.x, self.y, {r = self.r + 3 * math.pi / 4, attack = 'Neutral', color = self.color})
-      self.area:addGameObject('Projectile',
-        self.x, self.y, {r = self.r - 3 * math.pi / 4, attack = 'Neutral', color = self.color})
+      -- Explosion object will handle damage to enemies
+      if self.attack ~= 'Explode' then
+        object:hit(self.damage)
+        if object.hp <= 0 then current_room.player:onKill(object) end
+      end
     end
   end
   
@@ -277,7 +263,7 @@ function Projectile:draw()
   if self.invisible then return end
   pushRotate(self.x, self.y, Vector(self.collider:getLinearVelocity()):angleTo())
 
-  if self.attack == 'Homing' or self.attack == '2Split' or self.attack == '4Split' then
+  if self.attack == 'Homing' or self.attack == '2Split' or self.attack == '4Split' or self.attack == 'Explode' then
     love.graphics.setColor(self.color)
     love.graphics.polygon('fill',
       self.x - 2 * self.s, self.y, self.x, self.y - 1.5 * self.s, self.x, self.y + 1.5 * self.s)
@@ -304,6 +290,26 @@ function Projectile:die()
   self.dead = true
   self.area:addGameObject('ProjectileDeathEffect', self.x, self.y,
     {color = hp_color, w = 3 * self.s})
+
+  if self.attack == '2Split' then
+    self.area:addGameObject('Projectile',
+      self.x, self.y, {r = self.r + math.pi / 4, attack = 'Neutral', color = self.color})
+    self.area:addGameObject('Projectile',
+      self.x, self.y, {r = self.r - math.pi / 4, attack = 'Neutral', color = self.color})
+
+  elseif self.attack == '4Split' then
+    self.area:addGameObject('Projectile',
+      self.x, self.y, {r = self.r + math.pi / 4, attack = 'Neutral', color = self.color})
+    self.area:addGameObject('Projectile',
+      self.x, self.y, {r = self.r - math.pi / 4, attack = 'Neutral', color = self.color})
+    self.area:addGameObject('Projectile',
+      self.x, self.y, {r = self.r + 3 * math.pi / 4, attack = 'Neutral', color = self.color})
+    self.area:addGameObject('Projectile',
+      self.x, self.y, {r = self.r - 3 * math.pi / 4, attack = 'Neutral', color = self.color})
+  
+  elseif self.attack == 'Explode' then
+    self.area:addGameObject('Explosion', self.x, self.y, {color = self.color})
+  end
 end
 
 function Projectile:destroy()

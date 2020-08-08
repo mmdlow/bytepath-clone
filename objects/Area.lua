@@ -38,6 +38,7 @@ end
 function Area:addGameObject(game_object_type, x, y, opts)
   local opts = opts or {}
   local game_object = _G[game_object_type](self, x or 0, y or 0, opts)
+  game_object.class_name = game_object_type
   table.insert(self.game_objects, game_object)
   return game_object
 end
@@ -50,6 +51,18 @@ function Area:getGameObjects(filter)
     end
   end
   return out
+end
+
+function Area:queryPolygonArea(vertices, object_types)
+  if not object_types then object_types = {} end
+  return self:getGameObjects(function(e)
+    if fn.include(object_types, e.class_name) and
+      Math.polygon.isPolygonInside(vertices, e.vertices or rectangleToVertices(
+        e.x - e.w / 2, e.y - e.h / 2, e.w, e.h
+      )) then
+        return true
+    end
+  end)
 end
 
 function Area:addPhysicsWorld()

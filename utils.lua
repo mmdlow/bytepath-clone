@@ -82,3 +82,7 @@ function chanceList(...)
     end
   }
 end
+
+function rectangleToVertices(x, y, w, h)
+  return {x, y, x + w, y, x + w, y + h, x, y + h}
+end

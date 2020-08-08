@@ -3,9 +3,10 @@ ShootEffect = GameObject:extend()
 function ShootEffect:new(area, x, y, opts)
   ShootEffect.super.new(self, area, x, y, opts)
   
-  self.w = 8
+  self.w = opts.w or 8
   self.depth = 75
-  self.timer:tween(0.1, self, {w = 0}, 'in-out-cubic', function()
+  self.duration = opts.duration or 0.1
+  self.timer:tween(self.duration, self, {w = 0}, 'in-out-cubic', function()
     self.dead = true
   end)
 end

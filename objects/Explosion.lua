@@ -3,10 +3,10 @@ Explosion = GameObject:extend()
 function Explosion:new(area, x, y, opts)
   Explosion.super.new(self, area, x, y, opts)
 
-  self.w = opts.w or 16
+  self.w = (opts.w or 16) * current_room.player.area_multiplier
   self.depth = 75
   self.damage = 200
-  local w = random(48, 56)
+  local w = random(48, 56) * current_room.player.area_multiplier
   
   self.timer:tween(0.10, self, {w = w}, 'in-quart', function()
     camera:shake(w / 48, 60, (w / 48) * 0.4)
@@ -18,7 +18,7 @@ function Explosion:new(area, x, y, opts)
   
   local nearby_enemies = self.area:getGameObjects(function(e)
     for _, enemy in ipairs(enemies) do
-      if e:is(_G[enemy]) and (distance(e.x, e.y, self.x, self.y) < self.w) then
+      if e:is(_G[enemy]) and (distance(e.x, e.y, self.x, self.y) < w) then
         return true
       end
     end

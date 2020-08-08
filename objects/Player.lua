@@ -68,7 +68,7 @@ function Player:new(area, x, y, opts)
   self.cycle_cooldown = 5
 
   -- set attack
-  self:setAttack('Laser')
+  self:setAttack('2Split')
   self.shoot_timer = 0
   self.shoot_cooldown = attacks[self.attack].cooldown
 
@@ -96,6 +96,8 @@ function Player:new(area, x, y, opts)
   self.projectile_acceleration_multiplier = 1
   self.projectile_deceleration_multiplier = 1
   self.projectile_duration_multiplier = 1
+  self.area_multiplier = 1
+  self.laser_width_multiplier = 1
 
   self.aspd_multiplier = Stat(1)
   self.mvspd_multiplier = Stat(1)
@@ -106,6 +108,7 @@ function Player:new(area, x, y, opts)
   self.flat_hp = 0
   self.flat_boost = 0
   self.ammo_gain = 0
+  self.additional_bounce_projectiles = 1
 
   -- chances
   self.on_ammo_pickup_launch_homing_projectile_chance = 0
@@ -143,6 +146,7 @@ function Player:new(area, x, y, opts)
   self.spawn_double_sp_chance = 0
   self.gain_double_sp_chance = 0
   self.shield_projectile_chance = 0
+  self.split_projectiles_split_chance = 0
 
   --booleans
   self.while_boosting_increased_cycle_speed_chance = false
@@ -153,6 +157,10 @@ function Player:new(area, x, y, opts)
   self.wavy_projectiles = false
   self.fast_slow = false
   self.slow_fast = false
+  self.additional_lightning_bolt = false
+  self.increased_lightning_angle = false
+  self.fixed_spin_attack_direction = false
+  if self.fixed_spin_attack_direction then self.spin_direction = table.random({1, -1}) end
 
   -- ship design polygon points
   self.w = self.base_w * self.size_multiplier
@@ -495,10 +503,14 @@ function Player:shoot()
     camera:shake(4, 60, 0.4)
 
   elseif self.attack == 'Spin' then
+    local opts = {r = self.r, attack = self.attack}
+    if self.fixed_spin_attack_direction then
+      opts = table.merge(opts, {spin_direction = self.spin_direction})
+    end
     self.ammo = self.ammo - attacks[self.attack].ammo * self.ammo_consumption_multiplier
     self.area:addGameObject('Projectile',
       self.x + 1.5 * d * math.cos(self.r), self.y + 1.5 * d * math.sin(self.r),
-      table.merge({r = self.r, attack = self.attack}, mods))
+      table.merge(opts, mods))
 
   elseif self.attack == 'Flame' then
     self.ammo = self.ammo - attacks[self.attack].ammo * self.ammo_consumption_multiplier
@@ -512,7 +524,7 @@ function Player:shoot()
     self.ammo = self.ammo - attacks[self.attack].ammo * self.ammo_consumption_multiplier
     self.area:addGameObject('Projectile',
       self.x + 1.5 * d * math.cos(self.r), self.y + 1.5 * d * math.sin(self.r),
-      table.merge({r = self.r, attack = self.attack, bounce = 4}, mods))
+      table.merge({r = self.r, attack = self.attack, bounce = 4 + self.additional_bounce_projectiles}, mods))
 
   elseif self.attack == '2Split' then
     self.ammo = self.ammo - attacks[self.attack].ammo * self.ammo_consumption_multiplier
@@ -540,16 +552,19 @@ function Player:shoot()
       {player = self, d = d, w = 18, duration = duration})
     self.area:addGameObject('LaserLine',
       self.x + 1.5 * d * math.cos(self.r), self.y + 1.5 * d * math.sin(self.r),
-      table.merge({player = self, d = d, attack = self.attack, duration = duration}, mods))
+      table.merge({mw = 8 * self.laser_width_multiplier, player = self, d = d, attack = self.attack, duration = duration}, mods))
 
   elseif self.attack == 'Lightning' then
+    local aoe_offset_x = self.increased_lightning_angle and 24 * math.cos(self.r) or 0
+    local aoe_offset_y = self.increased_lightning_angle and 24 * math.sin(self.r) or 0
+    local aoe_radius = self.area_multiplier * 64
     local x1, y1 = self.x + d * math.cos(self.r), self.y + d * math.sin(self.r)
-    local cx, cy = x1 + 24 * math.cos(self.r), y1 + 24 * math.sin(self.r)
+    local cx, cy = x1 + aoe_offset_x, y1 + aoe_offset_y
 
     -- Find closest enemy
     local nearby_enemies = self.area:getGameObjects(function(e)
       for _, enemy in ipairs(enemies) do
-        if e:is(_G[enemy]) and (distance(e.x, e.y, cx, cy) < 64) then
+        if (e:is(EnemyProjectile) or e:is(_G[enemy])) and (distance(e.x, e.y, cx, cy) < aoe_radius) then
           return true
         end
       end
@@ -558,22 +573,29 @@ function Player:shoot()
     table.sort(nearby_enemies, function(a, b)
       return distance(a.x, a.y, cx, cy) < distance(b.x, b.y, cx, cy)
     end)
-    local closest_enemy = nearby_enemies[1]
 
-    -- Attack closest enemy
-    if closest_enemy then
-      self.ammo = self.ammo - attacks[self.attack].ammo * self.ammo_consumption_multiplier
-      closest_enemy:hit()
-      local x2, y2 = closest_enemy.x, closest_enemy.y
-      self.area:addGameObject('LightningLine', 0, 0, {x1 = x1, y1 = y1, x2 = x2, y2 = y2})
-      for i = 1, love.math.random(4, 8) do
-        self.area:addGameObject('ExplodeParticle', x1, y1,
-          {color = table.random({default_color, boost_color})})
-      end
-      for i = 1, love.math.random(4, 8) do
-        self.area:addGameObject('ExplodeParticle', x2, y2,
-          {color = table.random({default_color, boost_color})})
-      end
+    local num_enemies_to_attack = self.additional_lightning_bolt and 2 or 1
+    local closest_enemies = fn.first(nearby_enemies, num_enemies_to_attack)
+
+    for i, closest_enemy in ipairs(closest_enemies) do
+      -- Attack closest enemy(ies)
+      self.timer:after((i - 1) * 0.05, function()
+        if closest_enemy then
+          self.ammo = self.ammo - attacks[self.attack].ammo * self.ammo_consumption_multiplier
+          
+          if closest_enemy.hit then closest_enemy:hit()
+          else closest_enemy:die() end
+
+          local x2, y2 = closest_enemy.x, closest_enemy.y
+          self.area:addGameObject('LightningLine', 0, 0, {x1 = x1, y1 = y1, x2 = x2, y2 = y2})
+          for i = 1, love.math.random(4, 8) do
+            self.area:addGameObject('ExplodeParticle', x1, y1, {color = table.random({default_color, boost_color})})
+          end
+          for i = 1, love.math.random(4, 8) do
+            self.area:addGameObject('ExplodeParticle', x2, y2, {color = table.random({default_color, boost_color})})
+          end
+        end
+      end)
     end
   end
 

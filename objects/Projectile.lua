@@ -159,48 +159,11 @@ function Projectile:update(dt)
       self.r = 2 * math.pi - self.r
       self.bounce = self.bounce - 1
     end
-
-  -- 2Split and 4Split Wall Collision
-  elseif self.attack == '2Split' or self.attack == '4Split' then
-    if self.x < 0 then
-      self.area:addGameObject('Projectile',
-        self.x + self.s, self.y,
-        {r = 2 * math.pi - math.pi / 4, attack = 'Neutral', color = self.color})
-      self.area:addGameObject('Projectile',
-        self.x + self.s, self.y,
-        {r = math.pi / 4, attack = 'Neutral', color = self.color})
-      self:die()
-    end
-    if self.y < 0 then
-      self.area:addGameObject('Projectile',
-        self.x, self.y + self.s,
-        {r = 3 * math.pi / 4, attack = 'Neutral', color = self.color})
-      self.area:addGameObject('Projectile',
-        self.x, self.y + self.s,
-        {r = math.pi / 4, attack = 'Neutral', color = self.color})
-      self:die()
-    end
-    if self.x > gw then
-      self.area:addGameObject('Projectile',
-        self.x - self.s, self.y,
-        {r = 5 * math.pi / 4, attack = 'Neutral', color = self.color})
-      self.area:addGameObject('Projectile',
-        self.x - self.s, self.y,
-        {r = 3 * math.pi / 4, attack = 'Neutral', color = self.color})
-      self:die()
-    end
-    if self.y > gh then
-      self.area:addGameObject('Projectile',
-        self.x, self.y - self.s,
-        {r = 5 * math.pi / 4, attack = 'Neutral', color = self.color})
-      self.area:addGameObject('Projectile',
-        self.x, self.y - self.s,
-        {r = 2 * math.pi  - math.pi / 4, attack = 'Neutral', color = self.color})
-      self:die()
-    end
-
   else
-    if self.x < 0 or self.y < 0 or self.x > gw or self.y > gh then self:die() end
+    if self.x < 0 then self:die({wall_split_angle = 0})
+    elseif self.y < 0 then self:die({wall_split_angle = math.pi / 2})
+    elseif self.x > gw then self:die({wall_split_angle = -math.pi})
+    elseif self.y > gh then self:die({wall_split_angle = -math.pi / 2}) end
   end
 
   -- Spread attack
@@ -212,6 +175,9 @@ function Projectile:update(dt)
 
   -- Spin attack
   if self.attack == 'Spin' then
+    if self.spin_direction then
+      self.rv = self.spin_direction * random(math.pi, 2 * math.pi)
+    end
     self.r = self.r + self.rv * dt
   end
 
@@ -286,29 +252,45 @@ function Projectile:draw()
   love.graphics.pop()
 end
 
-function Projectile:die()
+function Projectile:die(opts)
+  local opts = opts or {}
   self.dead = true
   self.area:addGameObject('ProjectileDeathEffect', self.x, self.y,
     {color = hp_color, w = 3 * self.s})
 
+  -- Handle split attack projectile spawns
+  local player = current_room.player
+
   if self.attack == '2Split' then
-    self.area:addGameObject('Projectile',
-      self.x, self.y, {r = self.r + math.pi / 4, attack = 'Neutral', color = self.color})
-    self.area:addGameObject('Projectile',
-      self.x, self.y, {r = self.r - math.pi / 4, attack = 'Neutral', color = self.color})
+    local split_split = player.chances.split_projectiles_split_chance:next()
+    if self.split_split then split_split = false end
+    local next_attack = split_split and self.attack or 'Neutral'
+
+    -- Wall collision
+    if opts.wall_split_angle then
+      local r = opts.wall_split_angle
+      self.area:addGameObject('Projectile', self.x + 10 * math.cos(r - math.pi/4), self.y + 10 * math.sin(r - math.pi/4),
+        {r = r - math.pi / 4, attack = next_attack, color = self.color, split_split = split_split})
+      self.area:addGameObject('Projectile', self.x + 10 * math.cos(r + math.pi/4), self.y + 10 * math.sin(r + math.pi/4),
+        {r = r + math.pi / 4, attack = next_attack, color = self.color, split_split = split_split})
+    
+    -- Enemy collision
+    else
+      self.area:addGameObject('Projectile', self.x + 10 * math.cos(self.r - math.pi/4), self.y + 10 * math.sin(self.r - math.pi/4),
+        {r = self.r - math.pi / 4, attack = next_attack, color = self.color, split_split = split_split})
+      self.area:addGameObject('Projectile', self.x + 10 * math.cos(self.r + math.pi/4), self.y + 10 * math.sin(self.r + math.pi/4),
+        {r = self.r + math.pi / 4, attack = next_attack, color = self.color, split_split = split_split})
+    end
 
   elseif self.attack == '4Split' then
-    self.area:addGameObject('Projectile',
-      self.x, self.y, {r = self.r + math.pi / 4, attack = 'Neutral', color = self.color})
-    self.area:addGameObject('Projectile',
-      self.x, self.y, {r = self.r - math.pi / 4, attack = 'Neutral', color = self.color})
-    self.area:addGameObject('Projectile',
-      self.x, self.y, {r = self.r + 3 * math.pi / 4, attack = 'Neutral', color = self.color})
-    self.area:addGameObject('Projectile',
-      self.x, self.y, {r = self.r - 3 * math.pi / 4, attack = 'Neutral', color = self.color})
-  
-  elseif self.attack == 'Explode' then
-    self.area:addGameObject('Explosion', self.x, self.y, {color = self.color})
+    local split_split = player.chances.split_projectiles_split_chance:next()
+    if self.split_split then split_split = false end
+    local next_attack = split_split and self.attack or 'Neutral'
+    local angles = {math.pi / 4, -math.pi / 4, 3 * math.pi / 4, -3 * math.pi / 4}
+    for i, angle in ipairs(angles) do
+      self.area:addGameObject('Projectile', self.x + 10 * math.cos(angle), self.y + 10 * math.sin(angle),
+        {r = angle, attack = next_attack, color = self.color, split_split = split_split})
+    end
   end
 end
 

@@ -5,7 +5,7 @@ function LaserLine:new(area, x, y, opts)
 
   self.main_width = opts.mw or 8
   self.side_width = self.main_width / 4
-  self.side_offset = 6
+  self.side_offset = 3 * self.main_width / 4
   self.color = opts.color or default_color
   self.side_color = opts.side_color or hp_color
   self.length = math.sqrt(gw * gw + gh * gh)

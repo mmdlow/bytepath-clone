@@ -157,7 +157,8 @@ function Projectile:update(dt)
     if object then
       self:die()
       -- Explosion object will handle damage to enemies
-      if self.attack ~= 'Explode' then
+      if self.attack ~= 'Explode' or
+        (self.attack == 'Explode' and current_room.player.projectiles_explosions) then
         object:hit(self.damage)
         if object.hp <= 0 then current_room.player:onKill(object) end
       end

@@ -127,7 +127,7 @@ function Player:new(area, x, y, opts)
   self.on_cycle_mvspd_boost_chance = 0
   self.on_cycle_pspd_boost_chance = 0
   self.on_cycle_pspd_inhibit_chance = 0
-  self.on_cycle_explode_chance = 90
+  self.on_cycle_explode_chance = 0
 
   self.on_kill_barrage_chance = 0
   self.on_kill_regain_ammo_chance = 0
@@ -170,9 +170,10 @@ function Player:new(area, x, y, opts)
   self.while_boosting_invulnerability = false
   self.projectile_ninety_degree_change = false
   self.projectile_random_degree_change = false
+  self.projectiles_explode_on_expiration = false
+  self.projectiles_explosions = false
   self.wavy_projectiles = false
   self.barrage_nova = false
-  self.projectiles_explode_on_expiration = false
   self.fast_slow = false
   self.slow_fast = false
   self.additional_lightning_bolt = false
@@ -198,7 +199,7 @@ function Player:new(area, x, y, opts)
   self.start_with_laser = false
 
   -- set attack
-  self:setAttack('Flame')
+  self:setAttack('Neutral')
   self.shoot_timer = 0
   self.shoot_cooldown = attacks[self.attack].cooldown
 
@@ -747,11 +748,22 @@ function Player:onCycle()
     self.timer:after(4, function() self.pspd_boosting = false end)
     self.area:addGameObject('InfoText', self.x, self.y, {text = 'PSPD Boost!'})
   end
+   -- assume this will never happen with 'boost pspd' simultaneously
   if self.chances.on_cycle_pspd_inhibit_chance:next() then
     self.pspd_inhibiting = true
     self.timer:after(4, function() self.pspd_inhibiting = false end)
     self.area:addGameObject('InfoText', self.x, self.y, {text = 'PSPD Inhibit!'})
-  end -- assume this will never happen with 'boost pspd' simultaneously
+  end
+  if self.chances.on_cycle_explode_chance:next() then
+    local d = 3.5 * self.w
+    local coeffs = {1, 1, 1, -1, -1, -1, -1, 1}
+    for i = 1, #coeffs, 2 do
+      self.timer:after(table.random({0, 0.01, 0.02}), function()
+        self.area:addGameObject('Explosion',
+          self.x + coeffs[i] * d, self.y + coeffs[i + 1] * d, {w2 = d * 3})
+      end)
+    end
+  end
 end
 
 function Player:onSPPickup()

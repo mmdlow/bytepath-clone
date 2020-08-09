@@ -6,7 +6,26 @@ function Attack:new(area, x, y, opts)
   self.y = random(16, gh - 16)
   self.w, self.h = 10, 10
   self.font = fonts.m5x7_16
-  self.attack = table.random({'Double', 'Triple', 'Rapid', 'Spread', 'Back', 'Side', 'Homing'})
+
+  local player = current_room.player
+  self.attack = chanceList(
+    {'Double', 10 + player.chances.double_spawn_chance},
+    {'Triple', 10 + player.chances.triple_spawn_chance},
+    {'Rapid', 10 + player.chances.rapid_spawn_chance},
+    {'Spread', 10 + player.chances.spread_spawn_chance},
+    {'Back', 10 + player.chances.back_spawn_chance},
+    {'Side', 10 + player.chances.side_spawn_chance},
+    {'Homing', 10 + player.chances.homing_spawn_chance},
+    {'Blast', 10 + player.chances.blast_spawn_chance},
+    {'Spin', 10 + player.chances.spin_spawn_chance},
+    {'Flame', 10 + player.chances.flame_spawn_chance},
+    {'Bounce', 10 + player.chances.bounce_spawn_chance},
+    {'2Split', 10 + player.chances.twosplit_spawn_chance},
+    {'4Split', 10 + player.chances.foursplit_spawn_chance},
+    {'Lightning', 10 + player.chances.lightning_spawn_chance},
+    {'Explode', 10 + player.chances.explode_spawn_chance},
+    {'Laser', 10 + player.chances.laser_spawn_chance}
+  ):next()
 end
 
 function Attack:draw()

@@ -67,11 +67,6 @@ function Player:new(area, x, y, opts)
   self.cycle_timer = 0
   self.cycle_cooldown = 5
 
-  -- set attack
-  self:setAttack('2Split')
-  self.shoot_timer = 0
-  self.shoot_cooldown = attacks[self.attack].cooldown
-
   -- multipliers
   self.hp_multiplier = 1
   self.ammo_multiplier = 1
@@ -148,8 +143,25 @@ function Player:new(area, x, y, opts)
   self.shield_projectile_chance = 0
   self.split_projectiles_split_chance = 0
 
+  self.double_spawn_chance = 0
+  self.triple_spawn_chance = 0
+  self.rapid_spawn_chance = 0
+  self.spread_spawn_chance = 0
+  self.back_spawn_chance = 0
+  self.side_spawn_chance = 0
+  self.homing_spawn_chance = 0
+  self.blast_spawn_chance = 0
+  self.spin_spawn_chance = 0
+  self.flame_spawn_chance = 0
+  self.bounce_spawn_chance = 0
+  self.twosplit_spawn_chance = 0
+  self.foursplit_spawn_chance = 0
+  self.lightning_spawn_chance = 0
+  self.explode_spawn_chance = 0
+  self.laser_spawn_chance = 0
+
   --booleans
-  self.while_boosting_increased_cycle_speed_chance = false
+  self.while_boosting_increased_cycle_speed = false
   self.while_boosting_increased_luck = false
   self.while_boosting_invulnerability = false
   self.projectile_ninety_degree_change = false
@@ -161,6 +173,28 @@ function Player:new(area, x, y, opts)
   self.increased_lightning_angle = false
   self.fixed_spin_attack_direction = false
   if self.fixed_spin_attack_direction then self.spin_direction = table.random({1, -1}) end
+
+  self.start_with_double = false
+  self.start_with_triple = false
+  self.start_with_rapid = false
+  self.start_with_spread = false
+  self.start_with_back = false
+  self.start_with_side = false
+  self.start_with_homing = false
+  self.start_with_blast = false
+  self.start_with_spin = false
+  self.start_with_flame = false
+  self.start_with_bounce = false
+  self.start_with_twosplit = false
+  self.start_with_foursplit = false
+  self.start_with_lightning = false
+  self.start_with_explode = false
+  self.start_with_laser = false
+
+  -- set attack
+  self:setAttack('Neutral')
+  self.shoot_timer = 0
+  self.shoot_cooldown = attacks[self.attack].cooldown
 
   -- ship design polygon points
   self.w = self.base_w * self.size_multiplier
@@ -243,6 +277,27 @@ function Player:setStats()
   self.hp = self.max_hp
   self.ammo = self.max_ammo
   self.boost = self.max_boost
+
+  -- Starting attack
+  local starting_attacks = {
+    self.start_with_double and 'Double',
+    self.start_with_triple and 'Triple',
+    self.start_with_rapid and 'Rapid',
+    self.start_with_spread and 'Spread',
+    self.start_with_back and 'Back',
+    self.start_with_side and 'Side',
+    self.start_with_homing and 'Homing',
+    self.start_with_blast and 'Blast',
+    self.start_with_spin and 'Spin',
+    self.start_with_lightning and 'Lightning',
+    self.start_with_flame and 'Flame',
+    self.start_with_twosplit and '2Split',
+    self.start_with_foursplit and '4Split',
+    self.start_with_explode and 'Explode',
+    self.start_with_laser and 'Laser',
+  }
+  starting_attacks = fn.select(starting_attacks, function(k, v) return v end)
+  if #starting_attacks > 0 then self:setAttack(table.random(starting_attacks)) end
 end
 
 function Player:setChances()
@@ -726,7 +781,7 @@ function Player:onBoostStart()
       self.area:addGameObject('InfoText', self.x, self.y, {text = 'Homing Projectile!'})
     end
   end)
-  if self.while_boosting_increased_cycle_speed_chance then
+  if self.while_boosting_increased_cycle_speed then
     self.cycle_boosting = true
     self.area:addGameObject('InfoText', self.x, self.y, {text = 'Cycle Speed Increased!'})
   end
@@ -744,7 +799,7 @@ end
 function Player:onBoostEnd()
   self.timer:cancel('while_boosting_launch_homing_projectile_chance')
 
-  if self.while_boosting_increased_cycle_speed_chance and self.cycle_boosting then
+  if self.while_boosting_increased_cycle_speed and self.cycle_boosting then
     self.cycle_speed_multiplier:decrease(50)
     self.cycle_boosting = false
   end

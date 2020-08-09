@@ -127,6 +127,7 @@ function Player:new(area, x, y, opts)
   self.on_cycle_mvspd_boost_chance = 0
   self.on_cycle_pspd_boost_chance = 0
   self.on_cycle_pspd_inhibit_chance = 0
+  self.on_cycle_explode_chance = 90
 
   self.on_kill_barrage_chance = 0
   self.on_kill_regain_ammo_chance = 0
@@ -144,6 +145,7 @@ function Player:new(area, x, y, opts)
   self.gain_double_sp_chance = 0
   self.shield_projectile_chance = 0
   self.split_projectiles_split_chance = 0
+  self.drop_mines_chance = 0
 
   self.double_spawn_chance = 0
   self.triple_spawn_chance = 0
@@ -170,6 +172,7 @@ function Player:new(area, x, y, opts)
   self.projectile_random_degree_change = false
   self.wavy_projectiles = false
   self.barrage_nova = false
+  self.projectiles_explode_on_expiration = false
   self.fast_slow = false
   self.slow_fast = false
   self.additional_lightning_bolt = false
@@ -195,7 +198,7 @@ function Player:new(area, x, y, opts)
   self.start_with_laser = false
 
   -- set attack
-  self:setAttack('Neutral')
+  self:setAttack('Flame')
   self.shoot_timer = 0
   self.shoot_cooldown = attacks[self.attack].cooldown
 
@@ -269,8 +272,19 @@ function Player:new(area, x, y, opts)
     }
   end
   
+  -- generate chances and stats
   self:setStats()
   self:setChances()
+
+  -- drop mines
+  self.timer:every('drop_mines', 0.5, function()
+    if self.drop_mines_chance > 0 and self.chances.drop_mines_chance:next() then
+      local d = 1.2 * self.w
+      self.area:addGameObject('Projectile',
+        self.x - d * math.cos(self.r), self.y - d * math.sin(self.r),
+        {r = self.r, mine = true, attack = self.attack})
+    end
+  end)
 end
 
 function Player:setStats()

@@ -36,12 +36,22 @@ function Projectile:new(area, x, y, opts)
     self.damage = 75
     self.color = table.random(negative_colors)
     if not self.shield then
-      self.timer:tween(random(0.4, 0.6) * current_room.player.projectile_duration_multiplier, self, {v = 0}, 'linear', function() self:die() end)
+      self.timer:tween(random(0.4, 0.6) * current_room.player.projectile_duration_multiplier, self, {v = 0}, 'linear', function()
+        self:die()
+        if current_room.player.projectiles_explode_on_expiration then
+          self.area:addGameObject('Explosion', self.x, self.y, {w = 16, color = hp_color})
+        end
+      end)
     end
 
   elseif self.attack == 'Spin' then
     if not self.shield then
-      self.timer:after(random(2.4, 3.2) * current_room.player.projectile_duration_multiplier, function() self:die() end)
+      self.timer:after(random(2.4, 3.2) * current_room.player.projectile_duration_multiplier, function()
+        self:die()
+        if current_room.player.projectiles_explode_on_expiration then
+          self.area:addGameObject('Explosion', self.x, self.y, {w = 16, color = hp_color})
+        end
+      end)
       self.timer:every(0.05, function()
         self.area:addGameObject('ProjectileTrail', self.x, self.y,
         {r = Vector(self.collider:getLinearVelocity()):angleTo(), color = self.color, s = self.s})
@@ -51,7 +61,12 @@ function Projectile:new(area, x, y, opts)
   elseif self.attack == 'Flame' then
     self.damage = 50
     if not self.shield then
-      self.timer:tween(random(0.6, 1) * current_room.player.projectile_duration_multiplier, self, {v = 0}, 'linear', function() self:die() end)
+      self.timer:tween(random(0.6, 1) * current_room.player.projectile_duration_multiplier, self, {v = 0}, 'linear', function()
+        self:die()
+        if current_room.player.projectiles_explode_on_expiration then
+          self.area:addGameObject('Explosion', self.x, self.y, {w = 16, color = hp_color})
+        end
+      end)
       self.timer:every(0.05, function()
         self.area:addGameObject('ProjectileTrail', self.x, self.y,
         {r = Vector(self.collider:getLinearVelocity()):angleTo(), color = self.color, s = self.s})
@@ -118,7 +133,17 @@ function Projectile:new(area, x, y, opts)
     self.orbit_offset = random(0, 2 * math.pi)
     self.invisible = true
     self.timer:after(0.05, function() self.invisible = false end)
-    self.timer:after(6 * current_room.player.projectile_duration_multiplier, function() self:die() end)
+    self.timer:after(6 * current_room.player.projectile_duration_multiplier, function()
+      self:die()
+      if current_room.player.projectiles_explode_on_expiration then
+        self.area:addGameObject('Explosion', self.x, self.y, {w = 16, color = hp_color})
+      end
+    end)
+  end
+
+  if self.mine then
+    self.rv = table.random({random(-12 * math.pi, -10 * math.pi), random(10 * math.pi, 12 * math.pi)})
+    self.timer:after(random(8, 12), function() self:die() end)
   end
 
   self.previous_x, self.previous_y = self.collider:getPosition()
@@ -174,7 +199,7 @@ function Projectile:update(dt)
   end
 
   -- Spin attack
-  if self.attack == 'Spin' then
+  if self.attack == 'Spin' or self.mine then
     if self.spin_direction then
       self.rv = self.spin_direction * random(math.pi, 2 * math.pi)
     end
@@ -255,8 +280,13 @@ end
 function Projectile:die(opts)
   local opts = opts or {}
   self.dead = true
-  self.area:addGameObject('ProjectileDeathEffect', self.x, self.y,
-    {color = hp_color, w = 3 * self.s})
+
+  if self.attack == 'Explode' or self.mine then
+    self.area:addGameObject('Explosion', self.x, self.y, {color = hp_color, w = 16})
+  else
+    self.area:addGameObject('ProjectileDeathEffect', self.x, self.y,
+      {color = hp_color, w = 3 * self.s})
+  end
 
   -- Handle split attack projectile spawns
   local player = current_room.player

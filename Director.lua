@@ -20,11 +20,17 @@ function Director:new(stage)
     ['Shooter'] = 2
   }
 
-  self.resource_spawn_chances = chanceList(
-    {'Boost', 28 * self.stage.player.spawn_sp_chance_multiplier},
-    {'HP', 14 * self.stage.player.spawn_hp_chance_multiplier},
-    {'SP', 58 * self.stage.player.spawn_boost_chance_multiplier}
-  )
+  if self.stage.player.only_spawn_boost then
+    self.resource_spawn_chances = chanceList({'Boost', 1})
+  elseif self.stage.player.only_spawn_attack then
+    self.resource_spawn_chances = chanceList({'Attack', 1})
+  else
+    self.resource_spawn_chances = chanceList(
+      {'Boost', 28 * self.stage.player.spawn_sp_chance_multiplier},
+      {'HP', 14 * self.stage.player.spawn_hp_chance_multiplier},
+      {'SP', 58 * self.stage.player.spawn_boost_chance_multiplier}
+    )
+  end
 
   self.enemy_spawn_chances = {
     [1] = chanceList({'Rock', 1}),

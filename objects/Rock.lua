@@ -47,7 +47,9 @@ end
 function Rock:die()
   current_room.score = current_room.score + 100
   self.dead = true
-  self.area:addGameObject('Ammo', self.x, self.y)
+  if not current_room.player.no_ammo_drop then
+    self.area:addGameObject('Ammo', self.x, self.y)
+  end
   self.area:addGameObject('EnemyDeathEffect', self.x, self.y,
     {color = hp_color, w = 2.5 * self.w, h = 2.5 * self.h})
 end

@@ -25,4 +25,7 @@ attacks = {
   ['Laser']     = {cooldown = 0.8, ammo = 6, abbreviation = 'La', color = hp_color}
 }
 
+attack_names = {}
+for k, v in pairs(attacks) do table.insert(attack_names, k) end
+
 enemies = {'Shooter', 'Rock'}

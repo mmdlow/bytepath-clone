@@ -112,6 +112,7 @@ function Player:new(area, x, y, opts)
   self.additional_bounce_projectiles = 0
   self.additional_homing_projectiles = 0
   self.additional_barrage_projectiles = 0
+  self.added_chance_to_all_on_kill_events = 0
 
   -- chances
   self.on_ammo_pickup_launch_homing_projectile_chance = 0
@@ -170,8 +171,27 @@ function Player:new(area, x, y, opts)
   self.explode_spawn_chance = 0
   self.laser_spawn_chance = 0
 
-  --booleans
+  -- conversions
+  self.ammo_to_aspd = 0
+  self.mvspd_to_aspd = 0
+  self.mvspd_to_hp = 0
+  self.mvspd_to_pspd = 0
+
+  -- booleans
+  self.only_spawn_boost = false
+  self.only_spawn_attack = false
+  self.no_boost = false
+  self.no_ammo_drop = false
+  self.infinite_ammo = false
+  self.half_ammo = false
+  self.half_hp = false
   self.energy_shield = false
+  self.deals_damage_while_invulnerable = false
+  self.change_attack_periodically = false
+  self.gain_sp_on_death = false
+  self.convert_hp_to_sp_if_hp_full = false
+  self.refill_ammo_if_hp_full = false
+  self.refill_boost_if_hp_full = false
   self.while_boosting_increased_cycle_speed = false
   self.while_boosting_increased_luck = false
   self.while_boosting_invulnerability = false
@@ -293,12 +313,35 @@ function Player:new(area, x, y, opts)
         {r = self.r, mine = true, attack = self.attack})
     end
   end)
+
+  -- change attack periodically
+  self.timer:every('change_attack_periodically', 10, function()
+    if self.change_attack_periodically then
+      self:setAttack(table.random(attack_names))
+      self.area:addGameObject('InfoText',
+        self.x + table.random({-1, 1}) * self.w, self.y + table.random({-1, 1}) * self.h,
+        {color = attacks[self.attack].color, text = self.attack .. '!'})
+    end
+  end)
 end
 
 function Player:setStats()
+
+  if self.no_boost then self.max_boost = 0 end
+  if self.half_ammo then self.max_ammo = self.max_ammo / 2 end
+  if self.half_hp then self.max_hp = self.max_hp / 2 end
+
+  -- Conversions
+  if self.mvspd_to_hp > 0 then
+    if self.mvspd_multiplier.value < 1 then
+      self.flat_hp = self.flat_hp + self.mvspd_multiplier.value * self.mvspd_to_hp
+    end
+  end
+
+  -- Basic Stats
   self.max_hp = (self.max_hp + self.flat_hp) * self.hp_multiplier
   self.max_ammo = self.max_ammo * self.ammo_multiplier
-  self.max_boost = (self.max_boost + self.flat_boost)* self.boost_multiplier
+  self.max_boost = (self.max_boost + self.flat_boost) * self.boost_multiplier
   self.hp = self.max_hp
   self.ammo = self.max_ammo
   self.boost = self.max_boost
@@ -334,9 +377,15 @@ function Player:setChances()
   self.chances = {}
   for k, v in pairs(self) do
     if k:find('_chance') and type(v) == 'number' then
-      self.chances[k] = chanceList(
-        {true, math.ceil(v * self.luck_multiplier)},
-        {false, 100 - math.ceil(v * self.luck_multiplier)})
+      if k:find('_on_kill') and v > 0 then
+        self.chances[k] = chanceList(
+          {true, math.ceil((v + self.added_chance_to_all_on_kill_events) * self.luck_multiplier)},
+          {false, 100 - math.ceil((v + self.added_chance_to_all_on_kill_events) * self.luck_multiplier)})
+      else
+        self.chances[k] = chanceList(
+          {true, math.ceil(v * self.luck_multiplier)},
+          {false, 100 - math.ceil(v * self.luck_multiplier)})
+      end
     end
   end
 end
@@ -347,20 +396,34 @@ function Player:update(dt)
   self.w = self.base_w * self.size_multiplier
   self.h = self.base_h * self.size_multiplier
 
+  -- conversion management
+  if self.ammo_to_aspd > 0 then
+    self.aspd_multiplier:increase((self.ammo_to_aspd / 100) * (self.max_ammo - 100))
+  end
+
+  if self.mvspd_to_aspd > 0 then
+    self.aspd_multiplier:increase((self.mvspd_to_aspd / 100) * (self.mvspd_multiplier.value * 100 - 100))
+  end
+
+  if self.mvspd_to_pspd > 0 then
+    self.aspd_multiplier:increase((self.mvspd_to_pspd / 100) * (self.mvspd_multiplier.value * 100 - 100))
+  end
+
   -- stat multiplier management
   if self.inside_haste_area then self.aspd_multiplier:increase(100) end
   if self.aspd_boosting then self.aspd_multiplier:increase(100) end
-  self.aspd_multiplier:update(dt)
 
   if self.mvspd_boosting then self.mvspd_multiplier:increase(50) end
-  self.mvspd_multiplier:update(dt)
 
   if self.pspd_boosting then self.pspd_multiplier:increase(100) end
   if self.pspd_inhibiting then self.pspd_multiplier:decrease(50) end
   ---- assume these 2 will never ocur simultaneously
-  self.pspd_multiplier:update(dt)
 
   if self.cycle_boosting then self.cycle_speed_multiplier:increase(200) end
+
+  self.aspd_multiplier:update(dt)
+  self.mvspd_multiplier:update(dt)
+  self.pspd_multiplier:update(dt)
   self.cycle_speed_multiplier:update(dt)
 
   -- movement
@@ -402,7 +465,13 @@ function Player:update(dt)
       current_room.score  = current_room.score + 500
     end
   elseif self.collider:enter('Enemy') then
-    self:hit(30)
+    if self.invincible and self.deals_damage_while_invulnerable then
+      local collision_data = self.collider:getEnterCollisionData('Enemy')
+      local object = collision_data.collider:getObject()
+      if object then object:hit(100) end
+    else
+      self:hit(30)
+    end
   end
 
   -- cycle management
@@ -501,16 +570,18 @@ function Player:shoot()
     shield = self.chances.shield_projectile_chance:next()
   }
 
+  local attack_ammo = self.infinite_ammo and 0 or attacks[self.attack].ammo
+
   -- TODO: integrate merging of mods table with opts table for all attacks
   if self.attack == 'Neutral' then
-    self.ammo = self.ammo - attacks[self.attack].ammo * self.ammo_consumption_multiplier
+    self.ammo = self.ammo - attack_ammo * self.ammo_consumption_multiplier
     self.area:addGameObject('Projectile',
       self.x + 1.5 * d * math.cos(self.r),
       self.y + 1.5 * d * math.sin(self.r),
       table.merge({r = self.r, attack = self.attack}, mods))
 
   elseif self.attack == 'Double' then
-    self.ammo = self.ammo - attacks[self.attack].ammo * self.ammo_consumption_multiplier
+    self.ammo = self.ammo - attack_ammo * self.ammo_consumption_multiplier
     self.area:addGameObject('Projectile',
       self.x + 1.5 * d * math.cos(self.r + math.pi / 12),
       self.y + 1.5 * d * math.sin(self.r + math.pi / 12),
@@ -521,7 +592,7 @@ function Player:shoot()
       table.merge({r = self.r - math.pi/12, attack = self.attack}, mods))
 
   elseif self.attack == 'Triple' then
-    self.ammo = self.ammo - attacks[self.attack].ammo * self.ammo_consumption_multiplier
+    self.ammo = self.ammo - attack_ammo * self.ammo_consumption_multiplier
     self.area:addGameObject('Projectile',
       self.x + 1.5 * d * math.cos(self.r + math.pi / 12),
       self.y + 1.5 * d * math.sin(self.r + math.pi / 12),
@@ -536,19 +607,19 @@ function Player:shoot()
       table.merge({r = self.r - math.pi/12, attack = self.attack}, mods))
 
   elseif self.attack == 'Rapid' then
-    self.ammo = self.ammo - attacks[self.attack].ammo * self.ammo_consumption_multiplier
+    self.ammo = self.ammo - attack_ammo * self.ammo_consumption_multiplier
     self.area:addGameObject('Projectile',
       self.x + 1.5 * d * math.cos(self.r), self.y + 1.5 * d * math.sin(self.r),
       table.merge({r = self.r, attack = self.attack}, mods))
 
   elseif self.attack == 'Spread' then
-    self.ammo = self.ammo - attacks[self.attack].ammo * self.ammo_consumption_multiplier
+    self.ammo = self.ammo - attack_ammo * self.ammo_consumption_multiplier
     self.area:addGameObject('Projectile',
       self.x + 1.5 * d * math.cos(self.r), self.y + 1.5 * d * math.sin(self.r),
       table.merge({r = self.r + random(-math.pi / 8, math.pi / 8), attack = self.attack}, mods))
 
   elseif self.attack == 'Back' then
-    self.ammo = self.ammo - attacks[self.attack].ammo * self.ammo_consumption_multiplier
+    self.ammo = self.ammo - attack_ammo * self.ammo_consumption_multiplier
     self.area:addGameObject('Projectile',
       self.x + 1.5 * d * math.cos(self.r), self.y + 1.5 * d * math.sin(self.r),
       table.merge({r = self.r, attack = self.attack}, mods))
@@ -557,7 +628,7 @@ function Player:shoot()
       table.merge({r = self.r + math.pi, attack = self.attack}, mods))
 
   elseif self.attack == 'Side' then
-    self.ammo = self.ammo - attacks[self.attack].ammo * self.ammo_consumption_multiplier
+    self.ammo = self.ammo - attack_ammo * self.ammo_consumption_multiplier
     self.area:addGameObject('Projectile',
       self.x + 1.5 * d * math.cos(self.r + math.pi / 2),
       self.y + 1.5 * d * math.sin(self.r + math.pi / 2),
@@ -571,13 +642,13 @@ function Player:shoot()
       table.merge({r = self.r - math.pi / 2, attack = self.attack}, mods))
 
   elseif self.attack == 'Homing' then
-    self.ammo = self.ammo - attacks[self.attack].ammo * self.ammo_consumption_multiplier
+    self.ammo = self.ammo - attack_ammo * self.ammo_consumption_multiplier
     self.area:addGameObject('Projectile',
       self.x + 1.5 * d * math.cos(self.r), self.y + 1.5 * d * math.sin(self.r),
       table.merge({r = self.r, attack = self.attack}, mods))
   
   elseif self.attack == 'Blast' then
-    self.ammo = self.ammo - attacks[self.attack].ammo * self.ammo_consumption_multiplier
+    self.ammo = self.ammo - attack_ammo * self.ammo_consumption_multiplier
     for i = 1, 12 do
       local random_angle = random(-math.pi / 6, math.pi / 6)
       self.area:addGameObject('Projectile',
@@ -592,13 +663,13 @@ function Player:shoot()
     if self.fixed_spin_attack_direction then
       opts = table.merge(opts, {spin_direction = self.spin_direction})
     end
-    self.ammo = self.ammo - attacks[self.attack].ammo * self.ammo_consumption_multiplier
+    self.ammo = self.ammo - attack_ammo * self.ammo_consumption_multiplier
     self.area:addGameObject('Projectile',
       self.x + 1.5 * d * math.cos(self.r), self.y + 1.5 * d * math.sin(self.r),
       table.merge(opts, mods))
 
   elseif self.attack == 'Flame' then
-    self.ammo = self.ammo - attacks[self.attack].ammo * self.ammo_consumption_multiplier
+    self.ammo = self.ammo - attack_ammo * self.ammo_consumption_multiplier
     local random_angle = random(-math.pi / 16, math.pi / 16)
     self.area:addGameObject('Projectile',
       self.x + 1.5 * d * math.cos(self.r + random_angle),
@@ -606,32 +677,32 @@ function Player:shoot()
       table.merge({r = self.r + random_angle, attack = self.attack}, mods))
 
   elseif self.attack == 'Bounce' then
-    self.ammo = self.ammo - attacks[self.attack].ammo * self.ammo_consumption_multiplier
+    self.ammo = self.ammo - attack_ammo * self.ammo_consumption_multiplier
     self.area:addGameObject('Projectile',
       self.x + 1.5 * d * math.cos(self.r), self.y + 1.5 * d * math.sin(self.r),
       table.merge({r = self.r, attack = self.attack, bounce = 4 + self.additional_bounce_projectiles}, mods))
 
   elseif self.attack == '2Split' then
-    self.ammo = self.ammo - attacks[self.attack].ammo * self.ammo_consumption_multiplier
+    self.ammo = self.ammo - attack_ammo * self.ammo_consumption_multiplier
     self.area:addGameObject('Projectile',
       self.x + 1.5 * d * math.cos(self.r), self.y + 1.5 * d * math.sin(self.r),
       table.merge({r = self.r, attack = self.attack}, mods))
 
   elseif self.attack == '4Split' then
-    self.ammo = self.ammo - attacks[self.attack].ammo * self.ammo_consumption_multiplier
+    self.ammo = self.ammo - attack_ammo * self.ammo_consumption_multiplier
     self.area:addGameObject('Projectile',
       self.x + 1.5 * d * math.cos(self.r), self.y + 1.5 * d * math.sin(self.r),
       table.merge({r = self.r, attack = self.attack}, mods))
 
   elseif self.attack == 'Explode' then
-    self.ammo = self.ammo - attacks[self.attack].ammo * self.ammo_consumption_multiplier
+    self.ammo = self.ammo - attack_ammo * self.ammo_consumption_multiplier
     self.area:addGameObject('Projectile',
       self.x + 1.5 * d * math.cos(self.r), self.y + 1.5 * d * math.sin(self.r),
       table.merge({r = self.r, attack = self.attack}, mods))
 
   elseif self.attack == 'Laser' then
     local duration = 0.2
-    self.ammo = self.ammo - attacks[self.attack].ammo * self.ammo_consumption_multiplier
+    self.ammo = self.ammo - attack_ammo * self.ammo_consumption_multiplier
     self.area:addGameObject('LaserShootEffect', self.x + d * math.cos(self.r),
       self.y + d * math.sin(self.r),
       {player = self, d = d, w = 18, duration = duration})
@@ -666,7 +737,7 @@ function Player:shoot()
       -- Attack closest enemy(ies)
       self.timer:after((i - 1) * 0.05, function()
         if closest_enemy then
-          self.ammo = self.ammo - attacks[self.attack].ammo * self.ammo_consumption_multiplier
+          self.ammo = self.ammo - attack_ammo * self.ammo_consumption_multiplier
           
           if closest_enemy.hit then closest_enemy:hit()
           else closest_enemy:die() end
@@ -870,6 +941,19 @@ function Player:onHPPickup()
     self.area:addGameObject('HasteArea', self.x, self.y)
     self.area:addGameObject('InfoText', self.x, self.y, {text = 'Haste Area!'})
   end
+
+  if self.convert_hp_to_sp_if_hp_full and self.hp == self.max_hp then
+    skill_points = skill_points + 3
+    self.area:addGameObject('InfoText', self.x, self.y, {text = 'HP converted!'})
+  end
+
+  if self.refill_ammo_if_hp_full and self.hp == self.max_hp then
+    self.ammo = self.max_ammo
+  end
+
+  if self.refill_boost_if_hp_full and self.hp == self.max_hp then
+    self.boost = self.max_boost
+  end
 end
 
 function Player:setAttack(attack)
@@ -968,6 +1052,9 @@ function Player:die()
   for i = 1, love.math.random(8, 12) do
     self.area:addGameObject('ExplodeParticle', self.x, self.y)
   end
+
+  if self.gain_sp_on_death then skill_points = skill_points + 20 end
+
   current_room:finish()
 end
 

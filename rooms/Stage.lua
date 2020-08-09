@@ -91,23 +91,29 @@ function Stage:draw()
     love.graphics.rectangle('line', gw / 2 - 52, 16, 48, 4)
     love.graphics.print('AMMO', gw / 2 - 52 + 24, 24, 0, 1, 1,
       math.floor(self.font:getWidth('AMMO') / 2), math.floor(self.font:getHeight() / 2))
-    love.graphics.print(ammo .. '/' .. max_ammo, gw / 2 - 52 + 24, 6, 0, 1, 1,
-      math.floor(self.font:getWidth(ammo .. '/' .. max_ammo) / 2), math.floor(self.font:getHeight() / 2))
+    if self.player.infinite_ammo then
+      love.graphics.print('unlimited', gw / 2 - 52 + 24, 6, 0, 1, 1,
+        math.floor(self.font:getWidth('unlimited') / 2), math.floor(self.font:getHeight() / 2))
+    else
+      love.graphics.print(ammo .. '/' .. max_ammo, gw / 2 - 52 + 24, 6, 0, 1, 1,
+        math.floor(self.font:getWidth(ammo .. '/' .. max_ammo) / 2), math.floor(self.font:getHeight() / 2))
+    end
 
     -- Boost
-    local r, g, b = unpack(boost_color)
-    local boost, max_boost = math.ceil(self.player.boost), self.player.max_boost
-    love.graphics.setColor(r, g, b)
-    love.graphics.rectangle('fill', gw / 2 + 4, 16, 48 * (boost / max_boost), 4)
-    love.graphics.setColor(r - 32, g - 32, b - 32)
-    love.graphics.rectangle('line', gw / 2 + 4, 16, 48, 4)
-    love.graphics.print('BOOST', gw / 2 + 4 + 24, 24, 0, 1, 1,
-      math.floor(self.font:getWidth('BOOST') / 2), math.floor(self.font:getHeight() / 2))
-    love.graphics.print(boost .. '/' .. max_boost, gw / 2 + 4 + 24, 6, 0, 1, 1,
-      math.floor(self.font:getWidth(boost .. '/' .. max_boost) / 2), math.floor(self.font:getHeight() / 2))
+    if not self.player.no_boost then
+      local r, g, b = unpack(boost_color)
+      local boost, max_boost = math.ceil(self.player.boost), self.player.max_boost
+      love.graphics.setColor(r, g, b)
+      love.graphics.rectangle('fill', gw / 2 + 4, 16, 48 * (boost / max_boost), 4)
+      love.graphics.setColor(r - 32, g - 32, b - 32)
+      love.graphics.rectangle('line', gw / 2 + 4, 16, 48, 4)
+      love.graphics.print('BOOST', gw / 2 + 4 + 24, 24, 0, 1, 1,
+        math.floor(self.font:getWidth('BOOST') / 2), math.floor(self.font:getHeight() / 2))
+      love.graphics.print(boost .. '/' .. max_boost, gw / 2 + 4 + 24, 6, 0, 1, 1,
+        math.floor(self.font:getWidth(boost .. '/' .. max_boost) / 2), math.floor(self.font:getHeight() / 2))
+    end
 
-    -- Cycle (TODO)
-    -- position: (gw / 2 + 4, gh - 16)
+    -- Cycle
     local r, g, b = unpack(default_color)
     local cycle, max_cycle = self.player.cycle_timer, self.player.cycle_cooldown
     love.graphics.setColor(r, g, b)

@@ -103,7 +103,9 @@ function Player:new(area, x, y, opts)
   self.flat_hp = 0
   self.flat_boost = 0
   self.ammo_gain = 0
-  self.additional_bounce_projectiles = 1
+  self.additional_bounce_projectiles = 0
+  self.additional_homing_projectiles = 0
+  self.additional_barrage_projectiles = 0
 
   -- chances
   self.on_ammo_pickup_launch_homing_projectile_chance = 0
@@ -167,6 +169,7 @@ function Player:new(area, x, y, opts)
   self.projectile_ninety_degree_change = false
   self.projectile_random_degree_change = false
   self.wavy_projectiles = false
+  self.barrage_nova = false
   self.fast_slow = false
   self.slow_fast = false
   self.additional_lightning_bolt = false
@@ -296,7 +299,7 @@ function Player:setStats()
     self.start_with_explode and 'Explode',
     self.start_with_laser and 'Laser',
   }
-  starting_attacks = fn.select(starting_attacks, function(k, v) return v end)
+  starting_attacks = fn.select(starting_attacks, function(v, k) return v end)
   if #starting_attacks > 0 then self:setAttack(table.random(starting_attacks)) end
 end
 
@@ -699,9 +702,9 @@ function Player:onCycle()
     self.area:addGameObject('InfoText', self.x, self.y, {text = 'Haste Area!'})
   end
   if self.chances.on_cycle_barrage_chance:next() then
-    for i = 1, 8 do
+    for i = 1, 8 + self.additional_barrage_projectiles do
       self.timer:after((i - 1) * 0.05, function()
-        local random_angle = random(-math.pi / 8, math.pi / 8)
+        local random_angle = self.barrage_nova and random(0, 2 * math.pi) or random(-math.pi / 8, math.pi / 8)
         local d = 2.2 * self.w
         self.area:addGameObject('Projectile',
           self.x + d * math.cos(self.r + random_angle),
@@ -713,9 +716,11 @@ function Player:onCycle()
   end
   if self.chances.on_cycle_launch_homing_projectile_chance:next() then
     local d = 1.2 * self.w
-    self.area:addGameObject('Projectile',
-      self.x + d * math.cos(self.r), self.y + d * math.sin(self.r),
-      {r = self.r, attack = 'Homing'})
+    for i = 1, 1 + self.additional_homing_projectiles do
+      self.area:addGameObject('Projectile',
+        self.x + d * math.cos(self.r), self.y + d * math.sin(self.r),
+        {r = self.r, attack = 'Homing'})
+    end
     self.area:addGameObject('InfoText', self.x, self.y, {text = 'Homing Projectile!'})
   end
   if self.chances.on_cycle_mvspd_boost_chance:next() then
@@ -754,9 +759,11 @@ end
 function Player:onAmmoPickup()
   if self.chances.on_ammo_pickup_launch_homing_projectile_chance:next() then
     local d = 1.2 * self.w
-    self.area:addGameObject('Projectile',
-      self.x + d * math.cos(self.r), self.y + d * math.sin(self.r),
-      {r = self.r, attack = 'Homing'})
+    for i = 1, 1 + self.additional_homing_projectiles do
+      self.area:addGameObject('Projectile',
+        self.x + d * math.cos(self.r), self.y + d * math.sin(self.r),
+        {r = self.r, attack = 'Homing'})
+    end
     self.area:addGameObject('InfoText', self.x, self.y, {text = 'Homing Projectile!'})
   end
 
@@ -775,9 +782,11 @@ function Player:onBoostStart()
   self.timer:every('while_boosting_launch_homing_projectile_chance', 0.2, function()
     if self.chances.while_boosting_launch_homing_projectile_chance:next() then
       local d = 1.2 * self.w
-      self.area:addGameObject('Projectile',
-        self.x + d * math.cos(self.r), self.y + d * math.sin(self.r),
-        {r = self.r, attack = 'Homing'})
+      for i = 1, 1 + self.additional_homing_projectiles do
+        self.area:addGameObject('Projectile',
+          self.x + d * math.cos(self.r), self.y + d * math.sin(self.r),
+          {r = self.r, attack = 'Homing'})
+      end
       self.area:addGameObject('InfoText', self.x, self.y, {text = 'Homing Projectile!'})
     end
   end)
@@ -833,9 +842,9 @@ end
 
 function Player:onKill(enemy)
   if self.chances.on_kill_barrage_chance:next() then
-    for i = 1, 8 do
+    for i = 1, 8 + self.additional_barrage_projectiles do
       self.timer:after((i - 1) * 0.05, function()
-        local random_angle = random(-math.pi / 8, math.pi / 8)
+        local random_angle = self.barrage_nova and random(0, 2 * math.pi) or random(-math.pi / 8, math.pi / 8)
         local d = 2.2 * self.w
         self.area:addGameObject('Projectile',
           self.x + d * math.cos(self.r + random_angle),
@@ -851,9 +860,11 @@ function Player:onKill(enemy)
   end
   if self.chances.on_kill_launch_homing_projectile_chance:next() then
     local d = 1.2 * self.w
-    self.area:addGameObject('Projectile',
-      self.x + d * math.cos(self.r), self.y + d * math.sin(self.r),
-      {r = self.r, attack = 'Homing'})
+    for i = 1, 1 + self.additional_homing_projectiles do
+      self.area:addGameObject('Projectile',
+        self.x + d * math.cos(self.r), self.y + d * math.sin(self.r),
+        {r = self.r, attack = 'Homing'})
+    end
     self.area:addGameObject('InfoText', self.x, self.y, {text = 'Homing Projectile!'})
   end
   if self.chances.on_kill_regain_boost_chance:next() then

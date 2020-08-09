@@ -25,6 +25,10 @@ function Player:new(area, x, y, opts)
   self.boost_cooldown = 2
   self.boost_timer = 0
 
+  -- energy shield
+  self.energy_shield_recharge_cooldown = 2
+  self.energy_shield_recharge_amount = 1
+
   -- trail particles
   self.timer:every(0.01, function()
     if self.ship == 'Fighter' then
@@ -93,6 +97,8 @@ function Player:new(area, x, y, opts)
   self.projectile_duration_multiplier = 1
   self.area_multiplier = 1
   self.laser_width_multiplier = 1
+  self.energy_shield_recharge_amount_multiplier = 1
+  self.energy_shield_recharge_cooldown_multiplier = 1
 
   self.aspd_multiplier = Stat(1)
   self.mvspd_multiplier = Stat(1)
@@ -165,6 +171,7 @@ function Player:new(area, x, y, opts)
   self.laser_spawn_chance = 0
 
   --booleans
+  self.energy_shield = false
   self.while_boosting_increased_cycle_speed = false
   self.while_boosting_increased_luck = false
   self.while_boosting_invulnerability = false
@@ -316,6 +323,11 @@ function Player:setStats()
   }
   starting_attacks = fn.select(starting_attacks, function(v, k) return v end)
   if #starting_attacks > 0 then self:setAttack(table.random(starting_attacks)) end
+
+  -- Energy shield
+  if self.energy_shield then
+    self.invulnerability_time_multiplier = self.invulnerability_time_multiplier / 2
+  end
 end
 
 function Player:setChances()
@@ -914,7 +926,18 @@ end
 
 function Player:hit(damage)
   if self.invincible then return end
+
   local damage = damage or 10
+
+  if self.energy_shield then
+    damage = damage * 2
+    self.timer:after('es_cooldown', self.energy_shield_recharge_cooldown * self.energy_shield_recharge_cooldown_multiplier, function()
+      self.timer:every('es_amount', 0.25, function()
+        self:setHP(self.energy_shield_recharge_amount * self.energy_shield_recharge_amount_multiplier)
+      end)
+    end)
+  end
+
   self:setHP(-damage)
   for i = 1, love.math.random(4, 8) do
     self.area:addGameObject('ExplodeParticle', self.x, self.y)

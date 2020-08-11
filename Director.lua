@@ -18,7 +18,8 @@ function Director:new(stage)
   self.enemy_to_points = {
     ['Rock'] = 1,
     ['BigRock'] = 2,
-    ['Shooter'] = 2
+    ['Shooter'] = 2,
+    ['Waver'] = 4
   }
 
   if self.stage.player.only_spawn_boost then
@@ -37,7 +38,7 @@ function Director:new(stage)
     [1] = chanceList({'Rock', 1}),
     [2] = chanceList({'Rock', 8}, {'BigRock', 4}),
     [3] = chanceList({'Rock', 8}, {'BigRock', 4}, {'Shooter', 8}),
-    [4] = chanceList({'Rock', 4}, {'BigRock', 4}, {'Shooter', 8})
+    [4] = chanceList({'Rock', 4}, {'BigRock', 4}, {'Shooter', 8}, {'Waver', 4})
   }
   for i = 5, 1024 do
     self.enemy_spawn_chances[i] = chanceList(

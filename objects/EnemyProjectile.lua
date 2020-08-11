@@ -11,6 +11,11 @@ function EnemyProjectile:new(area, x, y, opts)
   self.collider:setCollisionClass('EnemyProjectile')
 
   self.damage = 10
+
+  if self.mine then
+    self.rv = table.random({random(-12 * math.pi, -10 * math.pi), random(10 * math.pi, 12 * math.pi)})
+    self.timer:after(random(8, 12), function() self:die() end)
+  end
 end
 
 function EnemyProjectile:update(dt)
@@ -33,6 +38,8 @@ function EnemyProjectile:update(dt)
   EnemyProjectile.super.update(self, dt)
   self.collider:setLinearVelocity(self.v * math.cos(self.r), self.v * math.sin(self.r))
   if self.x < 0 or self.y < 0 or self.x > gw or self.y > gh then self:die() end
+
+  if self.mine then self.r = self.r + self.rv * dt end
 end
 
 function EnemyProjectile:draw()

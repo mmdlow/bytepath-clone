@@ -28,4 +28,4 @@ attacks = {
 attack_names = {}
 for k, v in pairs(attacks) do table.insert(attack_names, k) end
 
-enemies = {'Shooter', 'Rock', 'BigRock', 'Waver'}
+enemies = {'Shooter', 'Rock', 'BigRock', 'Waver', 'Seeker'}

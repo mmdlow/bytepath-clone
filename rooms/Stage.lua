@@ -35,7 +35,7 @@ function Stage:new()
     self.area:addGameObject('BigRock', 0, 0)
   end) -- generate Rock enemy
   input:bind('7', function()
-    self.area:addGameObject('Waver', 0, 0)
+    self.area:addGameObject('Seeker', 0, 0)
   end) -- generate Shooter enemy
 end
 

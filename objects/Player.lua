@@ -15,7 +15,7 @@ function Player:new(area, x, y, opts)
   self.base_max_v = 100         -- base max velocity
   self.max_v = self.base_max_v  -- current max velocity
   self.a = 100                  -- player acceleration
-  self.ship = 'Striker'
+  self.ship = 'Fighter'
 
   -- boost stats
   self.trail_color = skill_point_color
@@ -299,6 +299,8 @@ function Player:new(area, x, y, opts)
       self.w / 4, self.h * 0.75
     }
   end
+
+  self:setShip()
   
   -- generate chances and stats
   self:setStats()
@@ -323,6 +325,84 @@ function Player:new(area, x, y, opts)
         {color = attacks[self.attack].color, text = self.attack .. '!'})
     end
   end)
+end
+
+function Player:setShip()
+  if self.ship == 'Crusader' then
+    self.max_boost = 80
+    self.boost_effectiveness_multiplier = 2
+    self.mvspd_multiplier = Stat(0.6)
+    self.turn_rate_multiplier = 0.5
+    self.aspd_multiplier = Stat(0.66)
+    self.pspd_multiplier = Stat(1.5)
+    self.max_hp = 150
+    self.size_multiplier = 1.5
+
+  elseif self.ship == 'Rogue' then
+    self.max_boost = 120
+    self.boost_recharge_rate_multiplier = 1.5
+    self.mvspd_multiplier = Stat(1.3)
+    self.max_ammo = 120
+    self.aspd_multiplier = Stat(1.25)
+    self.max_hp = 80
+    self.invulnerability_time_multiplier = 0.5
+    self.size_multiplier = 0.9
+
+  elseif self.ship == 'Bit Hunter' then
+    self.mvspd_multiplier = Stat(0.9)
+    self.turn_rate_multiplier = 0.9
+    self.max_ammo = 80
+    self.aspd_multiplier = Stat(0.8)
+    self.pspd_multiplier = Stat(0.9)
+    self.invulnerability_time_multiplier = 1.5
+    self.size_multiplier = 1.1
+    self.luck_multiplier = 1.5
+    self.resource_spawn_rate_multiplier = 1.5
+    self.enemy_spawn_rate_multiplier = 1.5
+    self.cycle_speed_multiplier = Stat(1.25)
+
+  elseif self.ship == 'Sentinel' then
+    self.energy_shield = true
+
+  elseif self.ship == 'Striker' then
+    self.max_ammo = 120
+    self.aspd_multiplier = Stat(2)
+    self.pspd_multiplier = Stat(1.25)
+    self.max_hp = 50
+    self.additional_barrage_projectiles = 8
+    self.on_kill_barrage_chance = 10
+    self.on_cycle_barrage_chance = 10
+    self.barrage_nova = true
+
+  elseif self.ship == 'Nuclear' then
+    self.max_boost = 80
+    self.turn_rate_multiplier = 0.8
+    self.max_ammo = 80
+    self.aspd_multiplier = Stat(0.85)
+    self.max_hp = 80
+    self.invulnerability_time_multiplier = 2
+    self.luck_multiplier = 1.5
+    self.resource_spawn_rate_multiplier = 1.5
+    self.enemy_spawn_rate_multiplier = 1.5
+    self.cycle_speed_multiplier = Stat(1.5)
+    self.on_cycle_explode_chance = 10
+
+  elseif self.ship == 'Cycler' then
+    self.cycle_speed_multiplier = Stat(2)
+
+  elseif self.ship == 'Wisp' then
+    self.max_boost = 50
+    self.mvspd_multiplier = Stat(0.5)
+    self.turn_rate_multiplier = 0.5
+    self.aspd_multiplier = Stat(0.66)
+    self.pspd_multiplier = Stat(0.5)
+    self.max_hp = 50
+    self.size_multiplier = 0.75
+    self.resource_spawn_rate_multiplier = 1.5
+    self.enemy_spawn_rate_multiplier = 1.5
+    self.shield_projectile_chance = 100
+    self.projectile_duration_multiplier = 1.5
+  end
 end
 
 function Player:setStats()
